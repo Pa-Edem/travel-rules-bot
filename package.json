@@ -1,0 +1,12 @@
+{
+  "name": "travel-rules-bot",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node bot.js"
+  },
+  "dependencies": {
+    "grammy": "^1.20.0",
+    "dotenv": "^16.3.1"
+  }
+}
