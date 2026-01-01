@@ -1,12 +1,41 @@
 {
   "name": "travel-rules-bot",
-  "version": "1.0.0",
-  "type": "module",
+  "version": "0.1.0",
+  "description": "Telegram bot with verified information about travel rules and regulations",
+  "main": "dist/index.js",
   "scripts": {
-    "start": "node bot.js"
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "format": "prettier --write \"src/**/*.{ts,json}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,json}\""
+  },
+  "keywords": [
+    "telegram",
+    "bot",
+    "travel",
+    "rules",
+    "regulations"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.18.0"
   },
   "dependencies": {
-    "grammy": "^1.20.0",
-    "dotenv": "^16.3.1"
+    "@supabase/supabase-js": "^2.45.4",
+    "grammy": "^1.30.0",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.1",
+    "@typescript-eslint/eslint-plugin": "^8.15.0",
+    "@typescript-eslint/parser": "^8.15.0",
+    "eslint": "^9.15.0",
+    "prettier": "^3.3.3",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
   }
 }
