@@ -23,6 +23,13 @@ import {
   handleDisclaimerReadFull,
   handleDisclaimerBack,
 } from './bot/handlers/callbacks/onboarding.callbacks.js';
+import {
+  handleShowCountries,
+  handleCountrySelection,
+  handleCategorySelection,
+  handleBack,
+  handleMainMenu,
+} from './bot/handlers/callbacks/navigation.callbacks.js';
 
 /**
  * Создаем экземпляр бота
@@ -111,6 +118,15 @@ bot.callbackQuery('disclaimer_accept', handleDisclaimerAccept);
 bot.callbackQuery('disclaimer_decline', handleDisclaimerDecline);
 bot.callbackQuery('disclaimer_read_full', handleDisclaimerReadFull);
 bot.callbackQuery('disclaimer_back', handleDisclaimerBack);
+
+/**
+ * Callback handlers для навигации
+ */
+bot.callbackQuery('menu_countries', handleShowCountries);
+bot.callbackQuery(/^country_[A-Z]{2}$/, handleCountrySelection);
+bot.callbackQuery(/^category_\w+$/, handleCategorySelection);
+bot.callbackQuery('nav_back', handleBack);
+bot.callbackQuery('nav_main_menu', handleMainMenu);
 
 /**
  * Обработчик текстовых сообщений

@@ -43,6 +43,34 @@
   "menu": {
     "main_title": "📋 Main Menu"
   },
+  "navigation": {
+    "countries": {
+      "title": "🌍 Choose a country:",
+      "italy": "🇮🇹 Italy",
+      "turkey": "🇹🇷 Turkey",
+      "uae": "🇦🇪 UAE",
+      "thailand": "🇹🇭 Thailand",
+      "spain": "🇪🇸 Spain",
+      "germany": "🇩🇪 Germany"
+    },
+    "categories": {
+      "title": "📂 Choose a category for {{country}}:",
+      "transport": "🚗 Transport & Driving",
+      "alcohol": "🍺 Alcohol & Smoking",
+      "drones": "🚁 Drones",
+      "medications": "💊 Medications",
+      "cultural": "🕌 Cultural Norms"
+    },
+    "rules": {
+      "coming_soon": "🚧 Rules for:\n{{country}} → {{category}}\n\nDetailed rules coming soon!",
+      "no_rules": "Rules for this category are not yet added."
+    },
+    "buttons": {
+      "back": "◀️ Back",
+      "back_to_categories": "◀️ Back to Categories",
+      "main_menu": "🏠 Main Menu"
+    }
+  },
   "errors": {
     "generic": "An error occurred. Please try again later.",
     "user_data": "Error: could not retrieve user data",
