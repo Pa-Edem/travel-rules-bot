@@ -12,6 +12,17 @@ import { userRepository } from './database/repositories/UserRepository.js';
 import { i18nMiddleware } from './bot/middlewares/i18n.middleware.js';
 import { sessionMiddleware } from './bot/middlewares/session.middleware.js';
 import type { BotContext } from './types/index.js';
+import {
+  createLanguageKeyboard,
+  createMainMenuKeyboard,
+} from './bot/keyboards/onboarding.keyboards.js';
+import {
+  handleLanguageSelection,
+  handleDisclaimerAccept,
+  handleDisclaimerDecline,
+  handleDisclaimerReadFull,
+  handleDisclaimerBack,
+} from './bot/handlers/callbacks/onboarding.callbacks.js';
 
 /**
  * Создаем экземпляр бота
@@ -35,33 +46,32 @@ bot.command('start', async (ctx) => {
       return;
     }
 
-    // Сохраняем пользователя в БД
+    // Получаем или создаем пользователя
     const user = await userRepository.findOrCreate(telegramUser.id, {
       id: telegramUser.id,
       username: telegramUser.username || null,
       first_name: telegramUser.first_name || null,
       last_name: telegramUser.last_name || null,
       language_code: telegramUser.language_code === 'ru' ? 'ru' : 'en',
+      onboarding_done: false, // По умолчанию онбординг не пройден
     });
 
-    const firstName = user.first_name || 'путешественник';
+    // ПРОВЕРКА: прошел ли пользователь онбординг?
+    if (!user.onboarding_done) {
+      // Показываем экран выбора языка
+      await ctx.reply('🌍 Добро пожаловать!\n\nВыберите язык / Choose your language:', {
+        reply_markup: createLanguageKeyboard(),
+      });
+      return;
+    }
 
-    // Формируем сообщение
-    const message = [
-      ctx.t('commands.start.greeting', { name: firstName }),
-      '',
-      ctx.t('commands.start.intro'),
-      '',
-      ctx.t('commands.start.description'),
-      '',
-      ctx.t('commands.start.dev_notice'),
-      '',
-      ctx.t('commands.start.available_commands'),
-      ctx.t('commands.start.command_start'),
-      ctx.t('commands.start.command_help'),
-    ].join('\n');
+    // Если онбординг пройден - показываем главное меню
+    const lang = user.language_code === 'ru' ? 'ru' : 'en';
+    const menuTitle = lang === 'ru' ? '📋 Главное меню' : '📋 Main Menu';
 
-    await ctx.reply(message);
+    await ctx.reply(menuTitle, {
+      reply_markup: createMainMenuKeyboard(lang),
+    });
 
     console.log(`✅ Пользователь ${user.id} (@${user.username || 'unknown'})`);
   } catch (error) {
@@ -92,6 +102,15 @@ bot.command('help', async (ctx) => {
 
   await ctx.reply(message, { parse_mode: 'Markdown' });
 });
+
+/**
+ * Callback handlers для онбординга
+ */
+bot.callbackQuery(/^lang_(en|ru)$/, handleLanguageSelection);
+bot.callbackQuery('disclaimer_accept', handleDisclaimerAccept);
+bot.callbackQuery('disclaimer_decline', handleDisclaimerDecline);
+bot.callbackQuery('disclaimer_read_full', handleDisclaimerReadFull);
+bot.callbackQuery('disclaimer_back', handleDisclaimerBack);
 
 /**
  * Обработчик текстовых сообщений

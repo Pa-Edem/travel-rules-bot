@@ -21,6 +21,28 @@
       "questions": "❓ Questions? Contact the developer!"
     }
   },
+  "onboarding": {
+    "language": {
+      "title": "🌍 Welcome!\n\nChoose your language / Выберите язык:"
+    },
+    "disclaimer": {
+      "title": "⚠️ Legal Disclaimer",
+      "short_text": "This bot provides general information about laws and regulations for informational purposes only.\n\n⚠️ Information may be incomplete or outdated. Always verify with official sources.",
+      "full_text": "📋 **FULL LEGAL DISCLAIMER**\n\n**1. Nature of Information**\nTravel Rules Bot provides general information about laws, regulations, and cultural norms of various countries for informational purposes only.\n\n**2. Not Legal Advice**\nInformation in this bot is NOT:\n• Legal advice\n• Official guidance\n• A substitute for professional counsel\n\n**3. Accuracy and Currency**\n• Information may be incomplete or outdated\n• Laws change regularly\n• Always verify information from official sources\n• We do not guarantee accuracy\n\n**4. Limitation of Liability**\nBy using this bot, you agree that:\n• Developers are not responsible for any consequences of using this information\n• You independently verify all information\n• You use information at your own risk\n\n**5. Recommendations**\n• Verify information on official embassy websites\n• Consult with lawyers when necessary\n• Monitor news about law changes\n\nBy using the bot, you accept all the above terms.",
+      "button_read_full": "📄 Read Full",
+      "button_back": "◀️ Back",
+      "accepted": "✅ Great! Welcome to Travel Rules Bot!",
+      "declined": "Sorry you declined. Use /start to begin again."
+    },
+    "welcome": {
+      "title": "🎉 Welcome!",
+      "description": "You can now browse travel rules for 6 countries:\n\n🇮🇹 Italy\n🇹🇷 Turkey\n🇦🇪 UAE\n🇹🇭 Thailand\n🇪🇸 Spain\n🇩🇪 Germany",
+      "instruction": "Choose an action from the menu below:"
+    }
+  },
+  "menu": {
+    "main_title": "📋 Main Menu"
+  },
   "errors": {
     "generic": "An error occurred. Please try again later.",
     "user_data": "Error: could not retrieve user data",
