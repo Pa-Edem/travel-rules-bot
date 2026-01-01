@@ -1,3 +1,5 @@
+// src/types/index.ts
+
 /**
  * Типы данных для Travel Rules Bot
  */
@@ -5,20 +7,35 @@
 import { Context } from 'grammy';
 
 /**
- * Расширенный контекст бота с поддержкой сессий
+ * Данные сессии пользователя
+ * Хранятся в БД (таблица sessions)
  */
-export interface BotContext extends Context {
-  session?: SessionData;
+export interface SessionData {
+  // Онбординг
+  onboarding_step?: 'language' | 'disclaimer' | 'completed';
+
+  // Навигация
+  current_country?: string;
+  current_category?: string;
+
+  // История навигации (для кнопки "Назад")
+  navigation_history?: Array<{
+    screen: 'menu' | 'countries' | 'categories' | 'rules';
+    data?: any;
+  }>;
 }
 
 /**
- * Данные сессии пользователя
+ * Расширенный контекст бота с поддержкой сессий и i18n
+ *
+ * Объяснение:
+ * - Context - базовый контекст Grammy
+ * - I18nFlavor - добавляет методы для переводов (t(), i18n)
+ * - session - данные сессии пользователя
  */
-export interface SessionData {
-  languageCode: string;
-  onboardingCompleted: boolean;
-  currentCountry?: string;
-  currentCategory?: string;
+export interface BotContext extends Context {
+  session?: SessionData;
+  t: (key: string, params?: Record<string, string>) => string;
 }
 
 /**
@@ -62,17 +79,17 @@ export interface Rule {
   rule_id: string; // Уникальный код (например: IT_TRANSPORT_001)
   country_id: string;
   category_id: string;
-  
+
   // Основная информация (английский)
   title_en: string;
   description_en: string;
   details_en?: string;
-  
+
   // Основная информация (русский)
   title_ru: string;
   description_ru: string;
   details_ru?: string;
-  
+
   // Дополнительные поля
   severity: SeverityLevel;
   fine_min_eur?: number;
@@ -81,10 +98,10 @@ export interface Rule {
   exceptions_ru?: string;
   scope_note_en?: string;
   scope_note_ru?: string;
-  
+
   // Источники
   sources: RuleSource[];
-  
+
   // Метаданные
   last_verified_at: string;
   view_count: number;

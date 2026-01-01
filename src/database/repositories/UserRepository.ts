@@ -1,3 +1,5 @@
+// src/database/repositories/UserRepository.ts
+
 /**
  * User Repository
  * Класс для работы с пользователями в базе данных
@@ -10,13 +12,14 @@
 
 import { supabase } from '../client.js';
 
-// Простые TypeScript типы для пользователя
+// Обновленные типы с добавлением onboarding_done
 export interface User {
   id: number;
   username: string | null;
   first_name: string | null;
   last_name: string | null;
   language_code: string;
+  onboarding_done: boolean;
   is_premium: boolean;
   premium_until: string | null;
   total_searches: number;
@@ -34,6 +37,7 @@ export interface UserInsert {
   first_name?: string | null;
   last_name?: string | null;
   language_code?: string;
+  onboarding_done?: boolean;
   is_premium?: boolean;
   premium_until?: string | null;
   total_searches?: number;
@@ -47,6 +51,7 @@ export interface UserUpdate {
   first_name?: string | null;
   last_name?: string | null;
   language_code?: string;
+  onboarding_done?: boolean;
   is_premium?: boolean;
   premium_until?: string | null;
   total_searches?: number;

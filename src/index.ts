@@ -1,3 +1,5 @@
+// src/index.ts
+
 /**
  * Главный файл Telegram бота
  * Travel Rules Bot - помощник для путешественников
@@ -7,6 +9,8 @@ import { Bot } from 'grammy';
 import { config } from './config/index.js';
 import { testDatabaseConnection } from './database/client.js';
 import { userRepository } from './database/repositories/UserRepository.js';
+import { i18nMiddleware } from './bot/middlewares/i18n.middleware.js';
+import { sessionMiddleware } from './bot/middlewares/session.middleware.js';
 import type { BotContext } from './types/index.js';
 
 /**
@@ -15,20 +19,23 @@ import type { BotContext } from './types/index.js';
 const bot = new Bot<BotContext>(config.bot.token);
 
 /**
+ * Подключаем middleware
+ */
+bot.use(i18nMiddleware());
+bot.use(sessionMiddleware());
+
+/**
  * Обработчик команды /start
- * Первое взаимодействие пользователя с ботом
- * Сохраняет/обновляет пользователя в базе данных
  */
 bot.command('start', async (ctx) => {
   try {
-    // Получаем данные пользователя из Telegram
     const telegramUser = ctx.from;
     if (!telegramUser) {
-      await ctx.reply('Ошибка: не удалось получить данные пользователя');
+      await ctx.reply(ctx.t('errors.user_data'));
       return;
     }
 
-    // Сохраняем или обновляем пользователя в БД
+    // Сохраняем пользователя в БД
     const user = await userRepository.findOrCreate(telegramUser.id, {
       id: telegramUser.id,
       username: telegramUser.username || null,
@@ -37,42 +44,29 @@ bot.command('start', async (ctx) => {
       language_code: telegramUser.language_code === 'ru' ? 'ru' : 'en',
     });
 
-    // Приветствие на языке пользователя
     const firstName = user.first_name || 'путешественник';
 
-    if (user.language_code === 'ru') {
-      await ctx.reply(
-        `👋 Привет, ${firstName}!\n\n` +
-          `Я Travel Rules Bot - твой помощник в путешествиях.\n\n` +
-          `🌍 Я помогу тебе узнать о законах и правилах в разных странах, ` +
-          `чтобы избежать штрафов и неприятностей.\n\n` +
-          `⚙️ Сейчас я в разработке. Скоро здесь появится много полезной информации!\n\n` +
-          `📝 Доступные команды:\n` +
-          `/start - начать работу с ботом\n` +
-          `/help - помощь`
-      );
-    } else {
-      await ctx.reply(
-        `👋 Hello, ${firstName}!\n\n` +
-          `I'm Travel Rules Bot - your travel assistant.\n\n` +
-          `🌍 I help you learn about laws and regulations in different countries ` +
-          `to avoid fines and troubles.\n\n` +
-          `⚙️ Currently in development. Useful information coming soon!\n\n` +
-          `📝 Available commands:\n` +
-          `/start - start using the bot\n` +
-          `/help - get help`
-      );
-    }
+    // Формируем сообщение
+    const message = [
+      ctx.t('commands.start.greeting', { name: firstName }),
+      '',
+      ctx.t('commands.start.intro'),
+      '',
+      ctx.t('commands.start.description'),
+      '',
+      ctx.t('commands.start.dev_notice'),
+      '',
+      ctx.t('commands.start.available_commands'),
+      ctx.t('commands.start.command_start'),
+      ctx.t('commands.start.command_help'),
+    ].join('\n');
 
-    // Логируем событие
-    console.log(
-      `✅ Пользователь: ${user.id} (@${user.username || 'unknown'}) | ` +
-        `Язык: ${user.language_code} | ` +
-        `Создан: ${new Date(user.created_at).toLocaleDateString('ru-RU')}`
-    );
+    await ctx.reply(message);
+
+    console.log(`✅ Пользователь ${user.id} (@${user.username || 'unknown'})`);
   } catch (error) {
-    console.error('❌ Ошибка в обработчике /start:', error);
-    await ctx.reply('Произошла ошибка. Попробуйте позже.');
+    console.error('❌ Ошибка в /start:', error);
+    await ctx.reply(ctx.t('errors.generic'));
   }
 });
 
@@ -80,38 +74,45 @@ bot.command('start', async (ctx) => {
  * Обработчик команды /help
  */
 bot.command('help', async (ctx) => {
-  await ctx.reply(
-    `ℹ️ *Справка по боту*\n\n` +
-      `Travel Rules Bot помогает узнать о законах и правилах в популярных туристических направлениях.\n\n` +
-      `🚧 Бот находится в разработке.\n\n` +
-      `📌 Планируемые функции:\n` +
-      `• Правила для 6 стран (Италия, Турция, ОАЭ, Таиланд, Испания, Германия)\n` +
-      `• 5 категорий (Транспорт, Алкоголь, Дроны, Медикаменты, Культурные нормы)\n` +
-      `• Поиск по правилам\n` +
-      `• Двуязычная поддержка (EN/RU)\n\n` +
-      `❓ Вопросы? Напиши разработчику!`,
-    { parse_mode: 'Markdown' }
-  );
+  const message = [
+    ctx.t('commands.help.title'),
+    '',
+    ctx.t('commands.help.description'),
+    '',
+    ctx.t('commands.help.dev_status'),
+    '',
+    ctx.t('commands.help.planned_features'),
+    ctx.t('commands.help.feature_countries'),
+    ctx.t('commands.help.feature_categories'),
+    ctx.t('commands.help.feature_search'),
+    ctx.t('commands.help.feature_bilingual'),
+    '',
+    ctx.t('commands.help.questions'),
+  ].join('\n');
+
+  await ctx.reply(message, { parse_mode: 'Markdown' });
 });
 
 /**
- * Обработчик всех текстовых сообщений
+ * Обработчик текстовых сообщений
  */
 bot.on('message:text', async (ctx) => {
-  await ctx.reply(
-    `Спасибо за сообщение! 🙏\n\n` +
-      `Я пока в разработке и не могу обрабатывать произвольные сообщения.\n\n` +
-      `Используйте команды:\n` +
-      `/start - начать\n` +
-      `/help - справка`
-  );
+  const message = [
+    ctx.t('errors.unknown_command'),
+    '',
+    ctx.t('commands.start.command_start'),
+    ctx.t('commands.start.command_help'),
+  ].join('\n');
+
+  await ctx.reply(message);
 });
 
 /**
  * Обработчик ошибок
  */
 bot.catch((err) => {
-  console.error('❌ Ошибка в боте:', err);
+  console.error('❌ ОШИБКА В БОТЕ:');
+  console.error(err);
 });
 
 /**
@@ -127,7 +128,6 @@ async function startBot() {
 
     if (!dbConnected) {
       console.error('❌ Не удалось подключиться к базе данных!');
-      console.error('Проверьте SUPABASE_URL и SUPABASE_ANON_KEY в .env файле');
       process.exit(1);
     }
 
@@ -135,9 +135,9 @@ async function startBot() {
     const botInfo = await bot.api.getMe();
     console.log(`✅ Бот запущен: @${botInfo.username}`);
     console.log(`📝 ID бота: ${botInfo.id}`);
-    console.log(`🔄 Режим: ${config.isDevelopment ? 'Development (Long Polling)' : 'Production'}`);
+    console.log(`🔄 Режим: Development (Long Polling)`);
 
-    // Запускаем long polling (для локальной разработки)
+    // Запускаем long polling
     await bot.start();
   } catch (error) {
     console.error('❌ Ошибка при запуске бота:', error);
@@ -149,12 +149,12 @@ async function startBot() {
  * Обработка сигналов завершения
  */
 process.once('SIGINT', () => {
-  console.log('\n⏸️  Получен сигнал SIGINT, останавливаем бота...');
+  console.log('\n⏸️  Останавливаем бота...');
   bot.stop();
 });
 
 process.once('SIGTERM', () => {
-  console.log('\n⏸️  Получен сигнал SIGTERM, останавливаем бота...');
+  console.log('\n⏸️  Останавливаем бота...');
   bot.stop();
 });
 

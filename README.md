@@ -221,3 +221,37 @@ MIT
 
 **Версия**: 0.1.0 (MVP Development)  
 **Статус**: 🚧 В разработке
+
+```
+travel-rules-bot
+├─ .eslintrc.json
+├─ .prettierrc
+├─ package.json
+├─ README.md
+├─ src
+│  ├─ bot
+│  │  ├─ handlers
+│  │  │  ├─ callbacks
+│  │  │  └─ commands
+│  │  ├─ keyboards
+│  │  └─ middlewares
+│  ├─ config
+│  │  ├─ constants.ts
+│  │  ├─ database.ts
+│  │  └─ index.ts
+│  ├─ database
+│  │  ├─ client.ts
+│  │  ├─ migrations
+│  │  │  └─ 001_initial_schema.sql
+│  │  └─ repositories
+│  │     └─ UserRepository.ts
+│  ├─ index.ts
+│  ├─ locales
+│  │  ├─ en
+│  │  └─ ru
+│  └─ types
+│     ├─ database.types.ts
+│     └─ index.ts
+└─ tsconfig.json
+
+```

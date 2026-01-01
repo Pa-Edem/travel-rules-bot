@@ -1,3 +1,5 @@
+// src/database/client.ts
+
 /**
  * Supabase Database Client
  * Подключение к PostgreSQL через Supabase

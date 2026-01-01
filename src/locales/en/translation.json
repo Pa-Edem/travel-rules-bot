@@ -1,0 +1,29 @@
+{
+  "commands": {
+    "start": {
+      "greeting": "👋 Hello, {{name}}!",
+      "intro": "I'm Travel Rules Bot - your travel assistant.",
+      "description": "🌍 I help you learn about laws and regulations in different countries to avoid fines and troubles.",
+      "dev_notice": "⚙️ Currently in development. Useful information coming soon!",
+      "available_commands": "📝 Available commands:",
+      "command_start": "/start - start using the bot",
+      "command_help": "/help - get help"
+    },
+    "help": {
+      "title": "ℹ️ *Bot Help*",
+      "description": "Travel Rules Bot helps you learn about laws and regulations in popular tourist destinations.",
+      "dev_status": "🚧 The bot is under development.",
+      "planned_features": "📌 Planned features:",
+      "feature_countries": "• Rules for 6 countries (Italy, Turkey, UAE, Thailand, Spain, Germany)",
+      "feature_categories": "• 5 categories (Transport, Alcohol, Drones, Medications, Cultural norms)",
+      "feature_search": "• Search by rules",
+      "feature_bilingual": "• Bilingual support (EN/RU)",
+      "questions": "❓ Questions? Contact the developer!"
+    }
+  },
+  "errors": {
+    "generic": "An error occurred. Please try again later.",
+    "user_data": "Error: could not retrieve user data",
+    "unknown_command": "Unknown command. Use /help to see available commands."
+  }
+}
