@@ -7,6 +7,7 @@
 import { InlineKeyboard } from 'grammy';
 import { COUNTRIES, CATEGORIES } from '../../config/constants.js';
 import { translate } from '../utils/translate.helper.js';
+import type { Rule } from '../../database/repositories/RuleRepository.js';
 
 /**
  * Клавиатура выбора страны
@@ -59,6 +60,60 @@ export function createRulesKeyboard(lang: 'en' | 'ru'): InlineKeyboard {
 
   keyboard
     .text(translate(lang, 'navigation.buttons.back_to_categories'), 'nav_back')
+    .text(translate(lang, 'navigation.buttons.main_menu'), 'nav_main_menu');
+
+  return keyboard;
+}
+
+/**
+ * Клавиатура со списком правил
+ */
+export function createRulesListKeyboard(rules: Rule[], lang: 'en' | 'ru'): InlineKeyboard {
+  const keyboard = new InlineKeyboard();
+
+  // Добавляем кнопку для каждого правила
+  rules.forEach((rule) => {
+    const title = rule.content[lang].title;
+    const severity = getSeverityEmoji(rule.severity);
+
+    keyboard.text(`${severity} ${title}`, `rule_${rule.id}`).row();
+  });
+
+  // Кнопки навигации
+  keyboard
+    .text(translate(lang, 'navigation.buttons.back'), 'nav_back')
+    .text(translate(lang, 'navigation.buttons.main_menu'), 'nav_main_menu');
+
+  return keyboard;
+}
+
+/**
+ * Получить эмодзи для уровня серьезности
+ */
+function getSeverityEmoji(severity: string): string {
+  switch (severity) {
+    case 'critical':
+      return '🔴';
+    case 'high':
+      return '🟠';
+    case 'medium':
+      return '🟡';
+    case 'low':
+      return '🟢';
+    default:
+      return '⚪';
+  }
+}
+
+/**
+ * Клавиатура для экрана просмотра правила
+ */
+export function createRuleViewKeyboard(lang: 'en' | 'ru'): InlineKeyboard {
+  const keyboard = new InlineKeyboard();
+
+  keyboard
+    .text(translate(lang, 'navigation.buttons.back_to_list'), 'nav_back')
+    .row()
     .text(translate(lang, 'navigation.buttons.main_menu'), 'nav_main_menu');
 
   return keyboard;

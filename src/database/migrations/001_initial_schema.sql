@@ -1,3 +1,5 @@
+-- src/database/migrations/001_initial_schema.sql
+
 -- =============================================================================
 -- Travel Rules Bot - Initial Database Schema
 -- Version: 1.0 MVP

@@ -172,7 +172,7 @@ SQL-миграции для создания таблиц будут добав�
 
 ## 📈 Дорожная карта
 
-### ✅ Фаза 1: Setup & Foundation (текущая)
+### ✅ Фаза 1: Setup & Foundation (недели 1-2)
 
 - [x] Инициализация проекта
 - [x] Настройка TypeScript, ESLint, Prettier
@@ -232,9 +232,17 @@ travel-rules-bot
 │  ├─ bot
 │  │  ├─ handlers
 │  │  │  ├─ callbacks
+│  │  │  │  ├─ navigation.callbacks.ts
+│  │  │  │  └─ onboarding.callbacks.ts
 │  │  │  └─ commands
 │  │  ├─ keyboards
-│  │  └─ middlewares
+│  │  │  ├─ navigation.keyboards.ts
+│  │  │  └─ onboarding.keyboards.ts
+│  │  ├─ middlewares
+│  │  │  ├─ i18n.middleware.ts
+│  │  │  └─ session.middleware.ts
+│  │  └─ utils
+│  │     └─ translate.helper.ts
 │  ├─ config
 │  │  ├─ constants.ts
 │  │  ├─ database.ts
@@ -242,13 +250,20 @@ travel-rules-bot
 │  ├─ database
 │  │  ├─ client.ts
 │  │  ├─ migrations
-│  │  │  └─ 001_initial_schema.sql
-│  │  └─ repositories
-│  │     └─ UserRepository.ts
+│  │  │  ├─ 001_initial_schema.sql
+│  │  │  └─ 002_add_onboarding_field.sql
+│  │  ├─ repositories
+│  │  │  ├─ RuleRepository.ts
+│  │  │  ├─ SessionRepository.ts
+│  │  │  └─ UserRepository.ts
+│  │  └─ seeds
+│  │     └─ example_rules.sql
 │  ├─ index.ts
 │  ├─ locales
 │  │  ├─ en
+│  │  │  └─ translation.json
 │  │  └─ ru
+│  │     └─ translation.json
 │  └─ types
 │     ├─ database.types.ts
 │     └─ index.ts

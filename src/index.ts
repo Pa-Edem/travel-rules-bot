@@ -29,6 +29,7 @@ import {
   handleCategorySelection,
   handleBack,
   handleMainMenu,
+  handleRuleView,
 } from './bot/handlers/callbacks/navigation.callbacks.js';
 
 /**
@@ -127,6 +128,7 @@ bot.callbackQuery(/^country_[A-Z]{2}$/, handleCountrySelection);
 bot.callbackQuery(/^category_\w+$/, handleCategorySelection);
 bot.callbackQuery('nav_back', handleBack);
 bot.callbackQuery('nav_main_menu', handleMainMenu);
+bot.callbackQuery(/^rule_[A-Z]{2}_[A-Z_]+_\d{3}$/, handleRuleView);
 
 /**
  * Обработчик текстовых сообщений

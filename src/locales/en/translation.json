@@ -62,12 +62,14 @@
       "cultural": "🕌 Cultural Norms"
     },
     "rules": {
-      "coming_soon": "🚧 Rules for:\n{{country}} → {{category}}\n\nDetailed rules coming soon!",
-      "no_rules": "Rules for this category are not yet added."
+      "coming_soon": "🚧 Rules for: {{country}} → {{category}}\n\nDetailed rules coming soon!",
+      "list_title": "📋 Rules: {{country}} → {{category}}\n\nFound {{count}} rules:",
+      "no_rules": "No rules found for this combination."
     },
     "buttons": {
       "back": "◀️ Back",
       "back_to_categories": "◀️ Back to Categories",
+      "back_to_list": "◀️ Back to List",
       "main_menu": "🏠 Main Menu"
     }
   },
