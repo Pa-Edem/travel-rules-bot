@@ -104,6 +104,63 @@ export class RuleRepository {
       // Не бросаем ошибку - это не критично
     }
   }
+
+  /**
+   * Базовый поиск правил по ключевым словам
+   * Использует full-text search по search_vector
+   *
+   * @param query - Поисковый запрос
+   * @param language - Язык для поиска
+   * @param countryCode - Фильтр по стране (опционально)
+   * @param category - Фильтр по категории (опционально)
+   * @param limit - Максимальное количество результатов (по умолчанию 10)
+   * @returns Массив найденных правил
+   */
+  async searchRules(
+    query: string,
+    language: 'en' | 'ru',
+    countryCode?: string,
+    category?: string,
+    limit: number = 10
+  ): Promise<Rule[]> {
+    try {
+      // Определяем какой search_vector использовать
+      const searchColumn = language === 'ru' ? 'search_vector_ru' : 'search_vector_en';
+
+      // Формируем запрос
+      let queryBuilder = supabase
+        .from('rules')
+        .select('*')
+        .textSearch(searchColumn, query, {
+          type: 'websearch',
+          config: language === 'ru' ? 'russian' : 'english',
+        })
+        .is('deleted_at', null)
+        .limit(limit);
+
+      // Добавляем фильтры если указаны
+      if (countryCode) {
+        queryBuilder = queryBuilder.eq('country_code', countryCode);
+      }
+
+      if (category) {
+        queryBuilder = queryBuilder.eq('category', category);
+      }
+
+      // Выполняем запрос
+      const { data, error } = await queryBuilder;
+
+      if (error) {
+        console.error('❌ Ошибка при поиске правил:', error);
+        throw error;
+      }
+
+      return (data || []) as Rule[];
+    } catch (err) {
+      console.error('❌ Неожиданная ошибка при поиске:', err);
+      return []; // Возвращаем пустой массив вместо ошибки
+    }
+  }
 }
 
 // Экспортируем singleton экземпляр

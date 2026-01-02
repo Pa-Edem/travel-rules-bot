@@ -30,6 +30,9 @@ import {
   handleBack,
   handleMainMenu,
   handleRuleView,
+  handlePagePrev,
+  handlePageNext,
+  handlePageCurrent,
 } from './bot/handlers/callbacks/navigation.callbacks.js';
 
 /**
@@ -119,6 +122,11 @@ bot.callbackQuery('disclaimer_accept', handleDisclaimerAccept);
 bot.callbackQuery('disclaimer_decline', handleDisclaimerDecline);
 bot.callbackQuery('disclaimer_read_full', handleDisclaimerReadFull);
 bot.callbackQuery('disclaimer_back', handleDisclaimerBack);
+
+// Обработчики пагинации
+bot.callbackQuery('page_prev', handlePagePrev);
+bot.callbackQuery('page_next', handlePageNext);
+bot.callbackQuery('page_current', handlePageCurrent);
 
 /**
  * Callback handlers для навигации

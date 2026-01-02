@@ -16,9 +16,7 @@ import {
 } from '../../keyboards/navigation.keyboards.js';
 import { createMainMenuKeyboard } from '../../keyboards/onboarding.keyboards.js';
 import { COUNTRIES, CATEGORIES } from '../../../config/constants.js';
-import { ruleRepository } from '../../../database/repositories/RuleRepository.js';
-import { formatRuleDetailed } from '../../../services/rule.service.js';
-import { paginate, formatPageCounter } from '../../utils/pagination.helper.js';
+import { ruleRepository, Rule } from '../../../database/repositories/RuleRepository.js';
 
 export async function handleShowCountries(ctx: BotContext) {
   const userId = ctx.from?.id;
@@ -54,7 +52,7 @@ export async function handleCountrySelection(ctx: BotContext) {
   const user = await userRepository.findById(userId);
   const lang = user?.language_code === 'ru' ? 'ru' : 'en';
 
-  // ✅ Получаем название из константы
+  // ✅ Получаем название из констант
   const country = COUNTRIES.find((c) => c.code === countryCode);
   const countryName = country ? (lang === 'ru' ? country.name_ru : country.name_en) : countryCode;
 
@@ -70,7 +68,11 @@ export async function handleCountrySelection(ctx: BotContext) {
 
 /**
  * Обработчик выбора категории
- * Показывает список правил для выбранной страны и категории (с пагинацией)
+ * Показывает список правил для выбранной страны и категории
+ */
+/**
+ * Обработчик выбора категории
+ * Показывает список правил для выбранной страны и категории
  */
 export async function handleCategorySelection(ctx: BotContext) {
   const callbackData = ctx.callbackQuery?.data;
@@ -86,10 +88,46 @@ export async function handleCategorySelection(ctx: BotContext) {
 
   // Сохраняем выбранную категорию в сессию
   ctx.session.current_category = categoryId;
-  ctx.session.current_page = 1; // Сбрасываем на первую страницу
 
   try {
-    await showRulesList(ctx, countryCode, categoryId, 1);
+    // Получаем язык пользователя
+    const user = await userRepository.findById(ctx.from!.id);
+    const lang = (user?.language_code as 'en' | 'ru') || 'en';
+
+    // Загружаем правила из БД
+    const rules = await ruleRepository.getRulesByCountryAndCategory(countryCode, categoryId);
+
+    // Получаем названия страны и категории
+    const country = COUNTRIES.find((c) => c.code === countryCode);
+    const category = CATEGORIES.find((c) => c.id === categoryId);
+
+    const countryName = lang === 'ru' ? country?.name_ru : country?.name_en;
+    const categoryName = lang === 'ru' ? category?.name_ru : category?.name_en;
+
+    if (rules.length === 0) {
+      // Если правил нет - показываем placeholder
+      await ctx.editMessageText(
+        translate(lang, 'navigation.rules.coming_soon', {
+          country: `${country?.emoji} ${countryName}`,
+          category: `${category?.emoji} ${categoryName}`,
+        }),
+        {
+          reply_markup: createRulesKeyboard(lang),
+        }
+      );
+    } else {
+      // Показываем список правил
+      const message = translate(lang, 'navigation.rules.list_title', {
+        country: `${country?.emoji} ${countryName}`,
+        category: `${category?.emoji} ${categoryName}`,
+        count: rules.length.toString(),
+      });
+
+      await ctx.editMessageText(message, {
+        reply_markup: createRulesListKeyboard(rules, lang),
+      });
+    }
+
     await ctx.answerCallbackQuery();
   } catch (error) {
     console.error('❌ Ошибка при загрузке правил:', error);
@@ -112,11 +150,10 @@ export async function handleBack(ctx: BotContext) {
 
   if (ctx.session?.current_category) {
     delete ctx.session.current_category;
-    delete ctx.session.current_page;
 
     const countryCode = ctx.session.current_country || 'IT';
 
-    // ✅ Получаем название из константы
+    // ✅ Получаем название из констант
     const country = COUNTRIES.find((c) => c.code === countryCode);
     const countryName = country ? (lang === 'ru' ? country.name_ru : country.name_en) : countryCode;
 
@@ -187,26 +224,20 @@ export async function handleRuleView(ctx: BotContext) {
       return;
     }
 
-    // ✅ Увеличиваем счетчик просмотров правила
+    // Увеличиваем счетчик просмотров
     await ruleRepository.incrementViews(ruleId);
-
-    // ✅ Увеличиваем счетчик просмотров пользователя
-    if (ctx.from?.id) {
-      await userRepository.incrementViews(ctx.from.id);
-    }
 
     // Получаем язык пользователя
     const user = await userRepository.findById(ctx.from!.id);
     const lang = (user?.language_code as 'en' | 'ru') || 'en';
 
-    // ✅ Форматируем правило через RuleService
-    const message = formatRuleDetailed(rule, lang);
+    // Формируем текст правила
+    const message = formatRuleMessage(rule, lang);
 
     // Отправляем сообщение
     await ctx.editMessageText(message, {
       reply_markup: createRuleViewKeyboard(lang),
       parse_mode: 'HTML',
-      link_preview_options: { is_disabled: true },
     });
 
     await ctx.answerCallbackQuery();
@@ -217,112 +248,66 @@ export async function handleRuleView(ctx: BotContext) {
 }
 
 /**
- * Обработчик кнопки "Предыдущая страница"
+ * Форматирование сообщения с правилом
  */
-export async function handlePagePrev(ctx: BotContext) {
-  if (!ctx.session?.current_country || !ctx.session?.current_category) {
-    await ctx.answerCallbackQuery('⚠️ Ошибка навигации');
-    return;
+function formatRuleMessage(rule: Rule, lang: 'en' | 'ru'): string {
+  const content = rule.content[lang];
+  const severityEmoji = getSeverityEmoji(rule.severity);
+  const severityText = getSeverityText(rule.severity, lang);
+
+  let message = `${severityEmoji} <b>${content.title}</b>\n\n`;
+  message += `📊 ${lang === 'en' ? 'Severity' : 'Серьезность'}: ${severityText}\n\n`;
+  message += `📝 ${content.description}\n\n`;
+
+  if (content.details) {
+    message += `ℹ️ <b>${lang === 'en' ? 'Details' : 'Подробности'}:</b>\n${content.details}\n\n`;
   }
 
-  const currentPage = ctx.session.current_page || 1;
-  const newPage = Math.max(1, currentPage - 1);
-
-  ctx.session.current_page = newPage;
-
-  try {
-    await showRulesList(ctx, ctx.session.current_country, ctx.session.current_category, newPage);
-    await ctx.answerCallbackQuery();
-  } catch (error) {
-    console.error('❌ Ошибка при переходе на предыдущую страницу:', error);
-    await ctx.answerCallbackQuery('❌ Ошибка при загрузке страницы');
+  // Штрафы
+  if (rule.fine_min && rule.fine_max) {
+    const fineLabel = lang === 'en' ? 'Fine' : 'Штраф';
+    message += `💰 <b>${fineLabel}:</b> ${rule.fine_min}-${rule.fine_max} ${rule.fine_currency}\n\n`;
   }
+
+  // Источники
+  if (rule.sources && rule.sources.length > 0) {
+    message += `📚 <b>${lang === 'en' ? 'Sources' : 'Источники'}:</b>\n`;
+    rule.sources.forEach((source, index) => {
+      message += `${index + 1}. <a href="${source.url}">${source.title}</a>\n`;
+    });
+  }
+
+  return message;
 }
 
 /**
- * Обработчик кнопки "Следующая страница"
+ * Получить текст для уровня серьезности
  */
-export async function handlePageNext(ctx: BotContext) {
-  if (!ctx.session?.current_country || !ctx.session?.current_category) {
-    await ctx.answerCallbackQuery('⚠️ Ошибка навигации');
-    return;
-  }
+function getSeverityText(severity: string, lang: 'en' | 'ru'): string {
+  const texts = {
+    critical: { en: 'Critical ⛔', ru: 'Критично ⛔' },
+    high: { en: 'High ⚠️', ru: 'Высокий ⚠️' },
+    medium: { en: 'Medium ⚡', ru: 'Средний ⚡' },
+    low: { en: 'Low ℹ️', ru: 'Низкий ℹ️' },
+  };
 
-  const currentPage = ctx.session.current_page || 1;
-  const newPage = currentPage + 1;
-
-  ctx.session.current_page = newPage;
-
-  try {
-    await showRulesList(ctx, ctx.session.current_country, ctx.session.current_category, newPage);
-    await ctx.answerCallbackQuery();
-  } catch (error) {
-    console.error('❌ Ошибка при переходе на следующую страницу:', error);
-    await ctx.answerCallbackQuery('❌ Ошибка при загрузке страницы');
-  }
+  return texts[severity as keyof typeof texts]?.[lang] || severity;
 }
 
 /**
- * Обработчик нажатия на счетчик страниц (ничего не делает)
+ * Получить эмодзи для уровня серьезности
  */
-export async function handlePageCurrent(ctx: BotContext) {
-  // Просто отвечаем на callback query, чтобы убрать "часики"
-  await ctx.answerCallbackQuery();
-}
-
-/**
- * Вспомогательная функция для отображения списка правил
- * Используется в handleCategorySelection и обработчиках пагинации
- */
-async function showRulesList(
-  ctx: BotContext,
-  countryCode: string,
-  categoryId: string,
-  page: number
-) {
-  // Получаем язык пользователя
-  const user = await userRepository.findById(ctx.from!.id);
-  const lang = (user?.language_code as 'en' | 'ru') || 'en';
-
-  // Загружаем ВСЕ правила из БД
-  const allRules = await ruleRepository.getRulesByCountryAndCategory(countryCode, categoryId);
-
-  // Получаем названия страны и категории
-  const country = COUNTRIES.find((c) => c.code === countryCode);
-  const category = CATEGORIES.find((c) => c.id === categoryId);
-
-  const countryName = lang === 'ru' ? country?.name_ru : country?.name_en;
-  const categoryName = lang === 'ru' ? category?.name_ru : category?.name_en;
-
-  if (allRules.length === 0) {
-    // Если правил нет - показываем placeholder
-    await ctx.editMessageText(
-      translate(lang, 'navigation.rules.coming_soon', {
-        country: `${country?.emoji} ${countryName}`,
-        category: `${category?.emoji} ${categoryName}`,
-      }),
-      {
-        reply_markup: createRulesKeyboard(lang),
-      }
-    );
-    return;
+function getSeverityEmoji(severity: string): string {
+  switch (severity) {
+    case 'critical':
+      return '🔴';
+    case 'high':
+      return '🟠';
+    case 'medium':
+      return '🟡';
+    case 'low':
+      return '🟢';
+    default:
+      return '⚪';
   }
-
-  // Применяем пагинацию
-  const { items: rulesPage, currentPage, totalPages } = paginate(allRules, page, 5);
-
-  // Формируем сообщение
-  const pageInfo = totalPages > 1 ? `\n\n${formatPageCounter(currentPage, totalPages, lang)}` : '';
-
-  const message =
-    translate(lang, 'navigation.rules.list_title', {
-      country: `${country?.emoji} ${countryName}`,
-      category: `${category?.emoji} ${categoryName}`,
-      count: allRules.length.toString(),
-    }) + pageInfo;
-
-  // Отправляем сообщение с клавиатурой
-  await ctx.editMessageText(message, {
-    reply_markup: createRulesListKeyboard(rulesPage, currentPage, totalPages, lang),
-  });
 }

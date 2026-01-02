@@ -17,6 +17,7 @@ export interface SessionData {
   // Навигация
   current_country?: string;
   current_category?: string;
+  current_page?: number;
 
   // История навигации (для кнопки "Назад")
   navigation_history?: Array<{

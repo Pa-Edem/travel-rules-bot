@@ -66,19 +66,9 @@ export function createRulesKeyboard(lang: 'en' | 'ru'): InlineKeyboard {
 }
 
 /**
- * Клавиатура со списком правил (с пагинацией)
- *
- * @param rules - Правила для текущей страницы
- * @param currentPage - Текущая страница
- * @param totalPages - Всего страниц
- * @param lang - Язык
+ * Клавиатура со списком правил
  */
-export function createRulesListKeyboard(
-  rules: Rule[],
-  currentPage: number,
-  totalPages: number,
-  lang: 'en' | 'ru'
-): InlineKeyboard {
+export function createRulesListKeyboard(rules: Rule[], lang: 'en' | 'ru'): InlineKeyboard {
   const keyboard = new InlineKeyboard();
 
   // Добавляем кнопку для каждого правила
@@ -88,31 +78,6 @@ export function createRulesListKeyboard(
 
     keyboard.text(`${severity} ${title}`, `rule_${rule.id}`).row();
   });
-
-  // Пагинация (если больше 1 страницы)
-  if (totalPages > 1) {
-    const hasPrev = currentPage > 1;
-    const hasNext = currentPage < totalPages;
-
-    // Кнопки Назад/Далее
-    if (hasPrev && hasNext) {
-      keyboard
-        .text('⬅️ ' + (lang === 'ru' ? 'Назад' : 'Prev'), `page_prev`)
-        .text(`${currentPage}/${totalPages}`, 'page_current')
-        .text((lang === 'ru' ? 'Далее' : 'Next') + ' ➡️', `page_next`)
-        .row();
-    } else if (hasPrev) {
-      keyboard
-        .text('⬅️ ' + (lang === 'ru' ? 'Назад' : 'Prev'), `page_prev`)
-        .text(`${currentPage}/${totalPages}`, 'page_current')
-        .row();
-    } else if (hasNext) {
-      keyboard
-        .text(`${currentPage}/${totalPages}`, 'page_current')
-        .text((lang === 'ru' ? 'Далее' : 'Next') + ' ➡️', `page_next`)
-        .row();
-    }
-  }
 
   // Кнопки навигации
   keyboard

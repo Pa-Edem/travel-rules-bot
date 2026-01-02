@@ -162,6 +162,28 @@ export class UserRepository {
     // Пользователя нет - создаём нового
     return await this.create(userData);
   }
+
+  /**
+   * Увеличить счетчик просмотров правил пользователя
+   * Вызывается каждый раз когда пользователь просматривает правило
+   *
+   * @param userId - ID пользователя
+   */
+  async incrementViews(userId: number): Promise<void> {
+    try {
+      const { error } = await supabase.rpc('increment_user_views', {
+        user_id: userId,
+      });
+
+      if (error) {
+        console.error('⚠️ Ошибка при увеличении счетчика просмотров пользователя:', error);
+        // Не бросаем ошибку - это не критично для UX
+      }
+    } catch (err) {
+      console.error('⚠️ Неожиданная ошибка при увеличении просмотров:', err);
+      // Игнорируем - не критично
+    }
+  }
 }
 
 // Экспортируем единственный экземпляр (Singleton)
