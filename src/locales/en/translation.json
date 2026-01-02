@@ -43,6 +43,23 @@
   "menu": {
     "main_title": "📋 Main Menu"
   },
+  "search": {
+    "prompt_title": "🔍 Search Rules",
+    "prompt_text": "Enter keywords to search:\n\n💡 Examples:\n• \"drone rome\"\n• \"alcohol limit\"\n• \"medication\"\n\nMinimum 3 characters required.",
+    "too_short": "⚠️ Query too short. Please enter at least 3 characters.",
+    "no_results": "😔 No results found for \"{{query}}\"",
+    "no_results_hint": "Try:\n• Different keywords\n• Simpler words\n• Check spelling",
+    "results_title": "🔍 Search results: \"{{query}}\"",
+    "results_count": "Found {{count}} rule(s)",
+    "grouped_by_country": "📍 {{country}}",
+    "filter_title": "🎯 Search Filters",
+    "filter_country": "Country: {{country}}",
+    "filter_category": "Category: {{category}}",
+    "filter_all": "All",
+    "apply_filters": "Apply filters",
+    "clear_filters": "Clear filters",
+    "searching": "🔍 Searching..."
+  },
   "navigation": {
     "countries": {
       "title": "🌍 Choose a country:",
@@ -70,7 +87,10 @@
       "back": "◀️ Back",
       "back_to_categories": "◀️ Back to Categories",
       "back_to_list": "◀️ Back to List",
-      "main_menu": "🏠 Main Menu"
+      "main_menu": "🏠 Main Menu",
+      "back_to_search": "🔍 Back to search",
+      "show_filters": "🎯 Filters",
+      "new_search": "🔍 New search"
     }
   },
   "errors": {

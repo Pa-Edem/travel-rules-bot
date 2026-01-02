@@ -34,6 +34,31 @@ import {
   handlePageNext,
   handlePageCurrent,
 } from './bot/handlers/callbacks/navigation.callbacks.js';
+import {
+  handleSearchStart,
+  handleSearchCancel,
+  handleSearchQuery,
+  handleSearchNew,
+  handleSearchShowFilters,
+  handleSearchBackToResults,
+  handleFilterCountry,
+  handleFilterCountrySelect,
+  handleFilterCategory,
+  handleFilterCategorySelect,
+  handleSearchClearFilters,
+  handleSearchPagePrev,
+  handleSearchPageNext,
+  handleSearchPageCurrent,
+  handleSearchCountryHeader,
+} from './bot/handlers/callbacks/search.callbacks.js';
+import { analyticsRepository } from './database/repositories/AnalyticsRepository.js';
+import {
+  handleSettingsMenu,
+  handleShowStatistics,
+  handleChangeLanguage,
+  handleLanguageChange,
+  handleAboutBot,
+} from './bot/handlers/callbacks/settings.callbacks.js';
 
 /**
  * Создаем экземпляр бота
@@ -66,6 +91,9 @@ bot.command('start', async (ctx) => {
       language_code: telegramUser.language_code === 'ru' ? 'ru' : 'en',
       onboarding_done: false, // По умолчанию онбординг не пройден
     });
+
+    // ✅ Трекаем событие "пользователь запустил бота"
+    await analyticsRepository.trackEvent(telegramUser.id, 'user_started');
 
     // ПРОВЕРКА: прошел ли пользователь онбординг?
     if (!user.onboarding_done) {
@@ -115,6 +143,34 @@ bot.command('help', async (ctx) => {
 });
 
 /**
+ * Обработчик команды /settings
+ */
+/**
+ * Обработчик команды /settings
+ */
+bot.command('settings', async (ctx) => {
+  const userId = ctx.from?.id;
+  if (!userId) return;
+
+  const user = await userRepository.findById(userId);
+  const lang = (user?.language_code as 'en' | 'ru') || 'en';
+
+  // Импортируем функции
+  const { getUserStatistics, formatSettingsMessage } =
+    await import('./bot/handlers/callbacks/settings.callbacks.js');
+  const { createSettingsKeyboard } = await import('./bot/keyboards/settings.keyboards.js');
+
+  // Получаем статистику
+  const stats = await getUserStatistics(userId, lang);
+  const message = formatSettingsMessage(stats, lang);
+
+  await ctx.reply(message, {
+    reply_markup: createSettingsKeyboard(lang),
+    parse_mode: 'HTML',
+  });
+});
+
+/**
  * Callback handlers для онбординга
  */
 bot.callbackQuery(/^lang_(en|ru)$/, handleLanguageSelection);
@@ -139,9 +195,45 @@ bot.callbackQuery('nav_main_menu', handleMainMenu);
 bot.callbackQuery(/^rule_[A-Z]{2}_[A-Z_]+_\d{3}$/, handleRuleView);
 
 /**
+ * Callback handlers для поиска
+ */
+bot.callbackQuery('menu_search', handleSearchStart);
+bot.callbackQuery('search_cancel', handleSearchCancel);
+bot.callbackQuery('search_new', handleSearchNew);
+bot.callbackQuery('search_show_filters', handleSearchShowFilters);
+bot.callbackQuery('search_back_to_results', handleSearchBackToResults);
+bot.callbackQuery('filter_country', handleFilterCountry);
+bot.callbackQuery(/^filter_country_[A-Z]{2}$/, handleFilterCountrySelect);
+bot.callbackQuery('filter_country_all', handleFilterCountrySelect);
+bot.callbackQuery('filter_category', handleFilterCategory);
+bot.callbackQuery(/^filter_category_\w+$/, handleFilterCategorySelect);
+bot.callbackQuery('filter_category_all', handleFilterCategorySelect);
+bot.callbackQuery('search_clear_filters', handleSearchClearFilters);
+bot.callbackQuery('search_page_prev', handleSearchPagePrev);
+bot.callbackQuery('search_page_next', handleSearchPageNext);
+bot.callbackQuery('search_page_current', handleSearchPageCurrent);
+bot.callbackQuery(/^search_country_header_/, handleSearchCountryHeader);
+
+/**
+ * Callback handlers для настроек
+ */
+bot.callbackQuery('menu_settings', handleSettingsMenu);
+bot.callbackQuery('settings_statistics', handleShowStatistics);
+bot.callbackQuery('settings_change_language', handleChangeLanguage);
+bot.callbackQuery(/^settings_lang_(en|ru)$/, handleLanguageChange);
+bot.callbackQuery('settings_about', handleAboutBot);
+
+/**
  * Обработчик текстовых сообщений
  */
 bot.on('message:text', async (ctx) => {
+  // Проверяем, находимся ли мы в режиме поиска
+  if (ctx.session?.search_mode) {
+    await handleSearchQuery(ctx);
+    return;
+  }
+
+  // Если не в режиме поиска - показываем стандартное сообщение
   const message = [
     ctx.t('errors.unknown_command'),
     '',

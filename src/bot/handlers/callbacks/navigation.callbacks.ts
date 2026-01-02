@@ -19,6 +19,7 @@ import { COUNTRIES, CATEGORIES } from '../../../config/constants.js';
 import { ruleRepository } from '../../../database/repositories/RuleRepository.js';
 import { formatRuleDetailed } from '../../../services/rule.service.js';
 import { paginate, formatPageCounter } from '../../utils/pagination.helper.js';
+import { analyticsRepository } from '../../../database/repositories/AnalyticsRepository.js';
 
 export async function handleShowCountries(ctx: BotContext) {
   const userId = ctx.from?.id;
@@ -50,6 +51,11 @@ export async function handleCountrySelection(ctx: BotContext) {
 
   if (!ctx.session) ctx.session = {};
   ctx.session.current_country = countryCode;
+
+  // ✅ Трекаем выбор страны
+  await analyticsRepository.trackEvent(userId, 'country_selected', {
+    country: countryCode,
+  });
 
   const user = await userRepository.findById(userId);
   const lang = user?.language_code === 'ru' ? 'ru' : 'en';
@@ -87,6 +93,15 @@ export async function handleCategorySelection(ctx: BotContext) {
   // Сохраняем выбранную категорию в сессию
   ctx.session.current_category = categoryId;
   ctx.session.current_page = 1; // Сбрасываем на первую страницу
+
+  // ✅ Трекаем выбор категории
+  const userId = ctx.from?.id;
+  if (userId) {
+    await analyticsRepository.trackEvent(userId, 'category_selected', {
+      country: countryCode,
+      category: categoryId,
+    });
+  }
 
   try {
     await showRulesList(ctx, countryCode, categoryId, 1);
@@ -187,19 +202,27 @@ export async function handleRuleView(ctx: BotContext) {
       return;
     }
 
-    // ✅ Увеличиваем счетчик просмотров правила
+    // Увеличиваем счетчик просмотров правила
     await ruleRepository.incrementViews(ruleId);
 
-    // ✅ Увеличиваем счетчик просмотров пользователя
+    // Увеличиваем счетчик просмотров пользователя
     if (ctx.from?.id) {
       await userRepository.incrementViews(ctx.from.id);
+
+      // ✅ Трекаем просмотр правила
+      await analyticsRepository.trackEvent(ctx.from.id, 'rule_viewed', {
+        rule_id: ruleId,
+        country: rule.country_code,
+        category: rule.category,
+        severity: rule.severity,
+      });
     }
 
     // Получаем язык пользователя
     const user = await userRepository.findById(ctx.from!.id);
     const lang = (user?.language_code as 'en' | 'ru') || 'en';
 
-    // ✅ Форматируем правило через RuleService
+    // Форматируем правило через RuleService
     const message = formatRuleDetailed(rule, lang);
 
     // Отправляем сообщение

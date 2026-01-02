@@ -106,37 +106,28 @@ export class RuleRepository {
   }
 
   /**
-   * Базовый поиск правил по ключевым словам
-   * Использует full-text search по search_vector
+   * Билингвальный поиск правил по ключевым словам
+   * Ищет одновременно по английскому И русскому, независимо от языка пользователя
    *
    * @param query - Поисковый запрос
-   * @param language - Язык для поиска
    * @param countryCode - Фильтр по стране (опционально)
    * @param category - Фильтр по категории (опционально)
-   * @param limit - Максимальное количество результатов (по умолчанию 10)
-   * @returns Массив найденных правил
+   * @param limit - Максимальное количество результатов (по умолчанию 50)
+   * @returns Массив найденных правил, отсортированных по релевантности
    */
   async searchRules(
     query: string,
-    language: 'en' | 'ru',
     countryCode?: string,
     category?: string,
-    limit: number = 10
+    limit: number = 50
   ): Promise<Rule[]> {
     try {
-      // Определяем какой search_vector использовать
-      const searchColumn = language === 'ru' ? 'search_vector_ru' : 'search_vector_en';
-
-      // Формируем запрос
+      // Формируем базовый запрос
       let queryBuilder = supabase
         .from('rules')
         .select('*')
-        .textSearch(searchColumn, query, {
-          type: 'websearch',
-          config: language === 'ru' ? 'russian' : 'english',
-        })
         .is('deleted_at', null)
-        .limit(limit);
+        .limit(limit * 2); // Берём больше, потому что будем фильтровать на клиенте
 
       // Добавляем фильтры если указаны
       if (countryCode) {
@@ -147,7 +138,7 @@ export class RuleRepository {
         queryBuilder = queryBuilder.eq('category', category);
       }
 
-      // Выполняем запрос
+      // Выполняем запрос для получения всех правил
       const { data, error } = await queryBuilder;
 
       if (error) {
@@ -155,12 +146,106 @@ export class RuleRepository {
         throw error;
       }
 
-      return (data || []) as Rule[];
+      if (!data || data.length === 0) {
+        return [];
+      }
+
+      const searchQuery = query.toLowerCase().trim();
+
+      // Фильтруем результаты на стороне клиента (билингвальный поиск)
+      const filteredRules = (data as Rule[]).filter((rule) => {
+        return (
+          textContainsQuery(rule.content.en.title, searchQuery) ||
+          textContainsQuery(rule.content.en.description, searchQuery) ||
+          textContainsQuery(rule.content.en.details || '', searchQuery) ||
+          textContainsQuery(rule.content.ru.title, searchQuery) ||
+          textContainsQuery(rule.content.ru.description, searchQuery) ||
+          textContainsQuery(rule.content.ru.details || '', searchQuery)
+        );
+      });
+
+      // Сортируем по релевантности (сначала совпадение в title, потом в description)
+      filteredRules.sort((a, b) => {
+        const aScore = getRelevanceScore(a, searchQuery);
+        const bScore = getRelevanceScore(b, searchQuery);
+        return bScore - aScore;
+      });
+
+      return filteredRules.slice(0, limit);
     } catch (err) {
       console.error('❌ Неожиданная ошибка при поиске:', err);
-      return []; // Возвращаем пустой массив вместо ошибки
+      return [];
     }
   }
+}
+
+// =============================================================================
+// ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ ПОИСКА
+// =============================================================================
+
+/**
+ * Нормализация текста для поиска
+ * Убирает знаки препинания, приводит к нижнему регистру
+ */
+function normalizeForSearch(text: string): string {
+  return (
+    text
+      .toLowerCase()
+      .trim()
+      // Убираем знаки препинания
+      .replace(/[.,!?;:()]/g, ' ')
+      // Убираем множественные пробелы
+      .replace(/\s+/g, ' ')
+  );
+}
+
+/**
+ * Проверка, содержит ли текст поисковый запрос
+ * Поддерживает многословные запросы
+ */
+function textContainsQuery(text: string, query: string): boolean {
+  const normalizedText = normalizeForSearch(text);
+  const normalizedQuery = normalizeForSearch(query);
+
+  // Простое совпадение подстроки
+  if (normalizedText.includes(normalizedQuery)) {
+    return true;
+  }
+
+  // Проверка по словам (для многословных запросов типа "alcohol limit")
+  const queryWords = normalizedQuery.split(' ').filter((w) => w.length > 0);
+  return queryWords.every((word) => normalizedText.includes(word));
+}
+
+/**
+ * Расчет релевантности правила для сортировки результатов поиска
+ * Чем выше балл - тем более релевантно правило
+ */
+function getRelevanceScore(rule: Rule, query: string): number {
+  let score = 0;
+  const q = query.toLowerCase();
+
+  // Совпадение в title = +10 баллов
+  if (textContainsQuery(rule.content.en.title, q)) score += 10;
+  if (textContainsQuery(rule.content.ru.title, q)) score += 10;
+
+  // Совпадение в description = +5 баллов
+  if (textContainsQuery(rule.content.en.description, q)) score += 5;
+  if (textContainsQuery(rule.content.ru.description, q)) score += 5;
+
+  // Совпадение в details = +2 балла
+  if (textContainsQuery(rule.content.en.details || '', q)) score += 2;
+  if (textContainsQuery(rule.content.ru.details || '', q)) score += 2;
+
+  // Бонус за severity (более важные правила выше)
+  if (rule.severity === 'critical') score += 3;
+  if (rule.severity === 'high') score += 2;
+  if (rule.severity === 'medium') score += 1;
+
+  // Бонус за популярность (популярные правила немного выше)
+  score += Math.min(rule.views / 100, 5); // Макс +5 баллов за просмотры
+
+  return score;
 }
 
 // Экспортируем singleton экземпляр

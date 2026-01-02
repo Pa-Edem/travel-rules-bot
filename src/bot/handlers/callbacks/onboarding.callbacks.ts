@@ -14,6 +14,7 @@ import {
   createFullDisclaimerKeyboard,
   createMainMenuKeyboard,
 } from '../../keyboards/onboarding.keyboards.js';
+import { analyticsRepository } from '../../../database/repositories/AnalyticsRepository.js';
 
 /**
  * Обработка выбора языка
@@ -29,6 +30,11 @@ export async function handleLanguageSelection(ctx: BotContext) {
 
   await userRepository.update(userId, {
     language_code: selectedLang,
+  });
+
+  // ✅ Трекаем выбор языка
+  await analyticsRepository.trackEvent(userId, 'language_selected', {
+    language: selectedLang,
   });
 
   if (!ctx.session) ctx.session = {};

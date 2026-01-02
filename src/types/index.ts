@@ -24,6 +24,16 @@ export interface SessionData {
     screen: 'menu' | 'countries' | 'categories' | 'rules';
     data?: any;
   }>;
+
+  // Поиск
+  search_mode?: boolean; // Включен ли режим ожидания ввода поиска
+  search_query?: string; // Последний поисковый запрос
+  search_filters?: {
+    country: string | null;
+    category: string | null;
+  };
+  search_results?: any[]; // Результаты последнего поиска
+  search_page?: number; // Текущая страница результатов поиска
 }
 
 /**

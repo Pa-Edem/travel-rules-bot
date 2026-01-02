@@ -242,6 +242,7 @@ travel-rules-bot
 │  │  │  ├─ i18n.middleware.ts
 │  │  │  └─ session.middleware.ts
 │  │  └─ utils
+│  │     ├─ pagination.helper.ts
 │  │     └─ translate.helper.ts
 │  ├─ config
 │  │  ├─ constants.ts
@@ -264,6 +265,8 @@ travel-rules-bot
 │  │  │  └─ translation.json
 │  │  └─ ru
 │  │     └─ translation.json
+│  ├─ services
+│  │  └─ rule.service.ts
 │  └─ types
 │     ├─ database.types.ts
 │     └─ index.ts
