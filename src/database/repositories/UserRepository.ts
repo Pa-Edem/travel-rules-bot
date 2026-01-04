@@ -2,12 +2,6 @@
 
 /**
  * User Repository
- * Класс для работы с пользователями в базе данных
- *
- * Инкапсулирует всю логику работы с таблицей users:
- * - Поиск пользователей
- * - Создание новых пользователей
- * - Обновление данных
  */
 
 import { supabase } from '../client.js';
@@ -22,6 +16,7 @@ export interface User {
   onboarding_done: boolean;
   is_premium: boolean;
   premium_until: string | null;
+  premium_interested: boolean;
   total_searches: number;
   total_views: number;
   last_country: string | null;
@@ -40,6 +35,7 @@ export interface UserInsert {
   onboarding_done?: boolean;
   is_premium?: boolean;
   premium_until?: string | null;
+  premium_interested?: boolean;
   total_searches?: number;
   total_views?: number;
   last_country?: string | null;
@@ -54,6 +50,7 @@ export interface UserUpdate {
   onboarding_done?: boolean;
   is_premium?: boolean;
   premium_until?: string | null;
+  premium_interested?: boolean;
   total_searches?: number;
   total_views?: number;
   last_country?: string | null;
@@ -65,11 +62,7 @@ export interface UserUpdate {
  * Repository для работы с пользователями
  */
 export class UserRepository {
-  /**
-   * Найти пользователя по Telegram ID
-   * @param telegramId - ID пользователя из Telegram
-   * @returns Пользователь или null если не найден
-   */
+  // Найти пользователя по Telegram ID
   async findById(telegramId: number): Promise<User | null> {
     const { data, error } = await supabase
       .from('users')
@@ -91,11 +84,7 @@ export class UserRepository {
     return data as User;
   }
 
-  /**
-   * Создать нового пользователя
-   * @param userData - Данные для создания пользователя
-   * @returns Созданный пользователь
-   */
+  // Создать нового пользователя
   async create(userData: UserInsert): Promise<User> {
     const { data, error } = await supabase
       .from('users')
@@ -116,12 +105,7 @@ export class UserRepository {
     return data as User;
   }
 
-  /**
-   * Обновить данные пользователя
-   * @param telegramId - ID пользователя
-   * @param updates - Поля для обновления
-   * @returns Обновлённый пользователь
-   */
+  // Обновить данные пользователя
   async update(telegramId: number, updates: UserUpdate): Promise<User> {
     const { data, error } = await supabase
       .from('users')
@@ -141,15 +125,7 @@ export class UserRepository {
     return data as User;
   }
 
-  /**
-   * Найти или создать пользователя
-   * Удобный метод: если пользователь существует - вернуть его,
-   * если нет - создать нового
-   *
-   * @param telegramId - ID пользователя из Telegram
-   * @param userData - Данные для создания (если пользователя нет)
-   * @returns Пользователь (найденный или созданный)
-   */
+  //Найти или создать пользователя
   async findOrCreate(telegramId: number, userData: UserInsert): Promise<User> {
     // Сначала пытаемся найти
     const existingUser = await this.findById(telegramId);
@@ -163,12 +139,7 @@ export class UserRepository {
     return await this.create(userData);
   }
 
-  /**
-   * Увеличить счетчик просмотров правил пользователя
-   * Вызывается каждый раз когда пользователь просматривает правило
-   *
-   * @param userId - ID пользователя
-   */
+  //Увеличить счетчик просмотров правил пользователя
   async incrementViews(userId: number): Promise<void> {
     try {
       const { error } = await supabase.rpc('increment_user_views', {

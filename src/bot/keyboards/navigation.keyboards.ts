@@ -142,14 +142,30 @@ function getSeverityEmoji(severity: string): string {
 
 /**
  * Клавиатура для экрана просмотра правила
+ * С кнопками обратной связи 👍/👎
+ *
+ * @param lang - Язык интерфейса ('en' или 'ru')
+ * @param ruleId - ID правила (например: 'IT_TRANSPORT_001')
  */
-export function createRuleViewKeyboard(lang: 'en' | 'ru'): InlineKeyboard {
+export function createRuleViewKeyboard(lang: 'en' | 'ru', ruleId: string): InlineKeyboard {
   const keyboard = new InlineKeyboard();
 
+  // Текст кнопок в зависимости от языка
+  const helpfulText = lang === 'ru' ? '👍 Полезно' : '👍 Helpful';
+  const notHelpfulText = lang === 'ru' ? '👎 Не полезно' : '👎 Not Helpful';
+
+  // СТРОКА 1: Кнопки обратной связи
+  // callback_data формат: feedback_helpful_IT_TRANSPORT_001
   keyboard
-    .text(translate(lang, 'navigation.buttons.back_to_list'), 'nav_back')
-    .row()
-    .text(translate(lang, 'navigation.buttons.main_menu'), 'nav_main_menu');
+    .text(helpfulText, `feedback_helpful_${ruleId}`)
+    .text(notHelpfulText, `feedback_not_helpful_${ruleId}`)
+    .row(); // .row() = перенос на новую строку
+
+  // СТРОКА 2: Кнопка "Назад к списку"
+  keyboard.text(translate(lang, 'navigation.buttons.back_to_list'), 'nav_back').row();
+
+  // СТРОКА 3: Кнопка "Главное меню"
+  keyboard.text(translate(lang, 'navigation.buttons.main_menu'), 'nav_main_menu');
 
   return keyboard;
 }

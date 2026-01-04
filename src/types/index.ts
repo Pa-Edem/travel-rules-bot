@@ -34,6 +34,10 @@ export interface SessionData {
   };
   search_results?: any[]; // Результаты последнего поиска
   search_page?: number; // Текущая страница результатов поиска
+
+  // Feedback
+  awaiting_feedback_text?: string;
+  awaiting_general_feedback?: boolean;
 }
 
 /**

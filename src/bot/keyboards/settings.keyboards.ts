@@ -18,6 +18,8 @@ export function createSettingsKeyboard(lang: 'en' | 'ru'): InlineKeyboard {
       .row()
       .text('🌐 Изменить язык', 'settings_change_language')
       .row()
+      .text('💬 Оставить отзыв', 'settings_feedback')
+      .row()
       .text('ℹ️ О боте', 'settings_about')
       .row()
       .text('🏠 Главное меню', 'nav_main_menu');
@@ -26,6 +28,8 @@ export function createSettingsKeyboard(lang: 'en' | 'ru'): InlineKeyboard {
       .text('📊 My Statistics', 'settings_statistics')
       .row()
       .text('🌐 Change Language', 'settings_change_language')
+      .row()
+      .text('💬 Leave Feedback', 'settings_feedback')
       .row()
       .text('ℹ️ About Bot', 'settings_about')
       .row()

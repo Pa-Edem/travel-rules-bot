@@ -233,11 +233,15 @@ travel-rules-bot
 │  │  ├─ handlers
 │  │  │  ├─ callbacks
 │  │  │  │  ├─ navigation.callbacks.ts
-│  │  │  │  └─ onboarding.callbacks.ts
+│  │  │  │  ├─ onboarding.callbacks.ts
+│  │  │  │  ├─ search.callbacks.ts
+│  │  │  │  └─ settings.callbacks.ts
 │  │  │  └─ commands
 │  │  ├─ keyboards
 │  │  │  ├─ navigation.keyboards.ts
-│  │  │  └─ onboarding.keyboards.ts
+│  │  │  ├─ onboarding.keyboards.ts
+│  │  │  ├─ search.keyboards.ts
+│  │  │  └─ settings.keyboards.ts
 │  │  ├─ middlewares
 │  │  │  ├─ i18n.middleware.ts
 │  │  │  └─ session.middleware.ts
@@ -252,8 +256,10 @@ travel-rules-bot
 │  │  ├─ client.ts
 │  │  ├─ migrations
 │  │  │  ├─ 001_initial_schema.sql
-│  │  │  └─ 002_add_onboarding_field.sql
+│  │  │  ├─ 002_add_onboarding_field.sql
+│  │  │  └─ 003_add_track_event_function.sql
 │  │  ├─ repositories
+│  │  │  ├─ AnalyticsRepository.ts
 │  │  │  ├─ RuleRepository.ts
 │  │  │  ├─ SessionRepository.ts
 │  │  │  └─ UserRepository.ts

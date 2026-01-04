@@ -59,6 +59,19 @@ import {
   handleLanguageChange,
   handleAboutBot,
 } from './bot/handlers/callbacks/settings.callbacks.js';
+import {
+  handleRuleFeedbackHelpful,
+  handleRuleFeedbackNotHelpful,
+  handleFeedbackTextMessage,
+  handleFeedbackCancel,
+  handleSettingsFeedback,
+  handleGeneralFeedbackMessage,
+  handleGeneralFeedbackCancel,
+} from './bot/handlers/callbacks/feedback.callbacks.js';
+import {
+  handlePremiumInfo,
+  handlePremiumNotify,
+} from './bot/handlers/callbacks/premium.callbacks.js';
 
 /**
  * Создаем экземпляр бота
@@ -223,17 +236,40 @@ bot.callbackQuery('settings_change_language', handleChangeLanguage);
 bot.callbackQuery(/^settings_lang_(en|ru)$/, handleLanguageChange);
 bot.callbackQuery('settings_about', handleAboutBot);
 
+// Обработчики feedback на правилах
+bot.callbackQuery(/^feedback_helpful_/, handleRuleFeedbackHelpful);
+bot.callbackQuery(/^feedback_not_helpful_/, handleRuleFeedbackNotHelpful);
+bot.callbackQuery('feedback_cancel', handleFeedbackCancel);
+bot.callbackQuery('settings_feedback', handleSettingsFeedback);
+bot.callbackQuery('general_feedback_cancel', handleGeneralFeedbackCancel);
+
+// Обработчики Premium
+bot.callbackQuery('menu_premium', handlePremiumInfo);
+bot.callbackQuery('premium_notify', handlePremiumNotify);
+
 /**
  * Обработчик текстовых сообщений
  */
 bot.on('message:text', async (ctx) => {
-  // Проверяем, находимся ли мы в режиме поиска
+  // Проверяем режим общего отзыва (ПЕРВЫМ!)
+  if (ctx.session?.awaiting_general_feedback) {
+    await handleGeneralFeedbackMessage(ctx);
+    return;
+  }
+
+  // Проверяем режим ожидания текстового feedback на правило
+  if (ctx.session?.awaiting_feedback_text) {
+    await handleFeedbackTextMessage(ctx);
+    return;
+  }
+
+  // Проверяем режим поиска
   if (ctx.session?.search_mode) {
     await handleSearchQuery(ctx);
     return;
   }
 
-  // Если не в режиме поиска - показываем стандартное сообщение
+  // Если не в режиме поиска и не в режиме feedback - показываем помощь
   const message = [
     ctx.t('errors.unknown_command'),
     '',

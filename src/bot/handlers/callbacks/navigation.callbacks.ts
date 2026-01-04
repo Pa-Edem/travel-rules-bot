@@ -227,7 +227,7 @@ export async function handleRuleView(ctx: BotContext) {
 
     // Отправляем сообщение
     await ctx.editMessageText(message, {
-      reply_markup: createRuleViewKeyboard(lang),
+      reply_markup: createRuleViewKeyboard(lang, ruleId),
       parse_mode: 'HTML',
       link_preview_options: { is_disabled: true },
     });

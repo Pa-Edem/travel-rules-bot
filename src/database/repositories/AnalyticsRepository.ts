@@ -17,7 +17,9 @@ export type AnalyticsEventType =
   | 'category_selected'
   | 'rule_viewed'
   | 'search_performed'
-  | 'feedback_submitted';
+  | 'feedback_submitted'
+  | 'premium_page_viewed'
+  | 'premium_waitlist_joined';
 
 /**
  * Интерфейс события аналитики
