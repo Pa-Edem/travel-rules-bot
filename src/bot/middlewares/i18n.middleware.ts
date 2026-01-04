@@ -5,6 +5,7 @@
  */
 
 import { Middleware } from 'grammy';
+import { logger } from '../../utils/logger.js';
 import type { BotContext } from '../../types/index.js';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
@@ -19,7 +20,7 @@ const translations = {
   ru: JSON.parse(readFileSync(resolve(__dirname, '../../locales/ru/translation.json'), 'utf8')),
 };
 
-console.log('✅ Переводы загружены: EN, RU');
+logger.info('Переводы загружены: EN, RU');
 
 /**
  * Получить перевод по ключу

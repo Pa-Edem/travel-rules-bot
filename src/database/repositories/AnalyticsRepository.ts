@@ -5,6 +5,7 @@
  * Класс для работы с событиями аналитики
  */
 
+import { logger } from '../../utils/logger.js';
 import { supabase } from '../client.js';
 
 /**
@@ -57,11 +58,16 @@ export class AnalyticsRepository {
       });
 
       if (error) {
-        console.error('⚠️ Ошибка при записи события аналитики:', error);
+        logger.warn('Ошибка при записи события аналитики:', {
+          error: error.message,
+          code: error.code,
+        });
         // Не бросаем ошибку - аналитика не должна ломать основной функционал
       }
     } catch (err) {
-      console.error('⚠️ Неожиданная ошибка при записи события:', err);
+      logger.error('Неожиданная ошибка при записи события аналитики:', {
+        error: err instanceof Error ? err.message : 'Unknown error',
+      });
       // Игнорируем ошибку - не критично для UX
     }
   }
@@ -82,13 +88,20 @@ export class AnalyticsRepository {
         .limit(limit);
 
       if (error) {
-        console.error('❌ Ошибка при получении событий пользователя:', error);
+        logger.error('Ошибка при получении событий пользователя:', {
+          error: error.message,
+          code: error.code,
+          userId: userId,
+        });
         return [];
       }
 
       return (data || []) as AnalyticsEvent[];
     } catch (err) {
-      console.error('❌ Неожиданная ошибка при получении событий:', err);
+      logger.error('Неожиданная ошибка при получении событий пользователя:', {
+        error: err instanceof Error ? err.message : 'Unknown error',
+        userId: userId,
+      });
       return [];
     }
   }
@@ -115,7 +128,10 @@ export class AnalyticsRepository {
 
       return stats;
     } catch (err) {
-      console.error('❌ Ошибка при получении статистики событий:', err);
+      logger.error('Ошибка при получении статистики событий пользователя:', {
+        error: err instanceof Error ? err.message : 'Unknown error',
+        userId: userId,
+      });
       return {} as Record<AnalyticsEventType, number>;
     }
   }
@@ -161,7 +177,10 @@ export class AnalyticsRepository {
 
       return favoriteCountry;
     } catch (err) {
-      console.error('❌ Ошибка при получении любимой страны:', err);
+      logger.error('❌ Ошибка при получении любимой страны:', {
+        error: err instanceof Error ? err.message : 'Unknown error',
+        userId: userId,
+      });
       return null;
     }
   }
@@ -206,7 +225,10 @@ export class AnalyticsRepository {
 
       return favoriteCategory;
     } catch (err) {
-      console.error('❌ Ошибка при получении любимой категории:', err);
+      logger.error('❌ Ошибка при получении любимой категории:', {
+        error: err instanceof Error ? err.message : 'Unknown error',
+        userId: userId,
+      });
       return null;
     }
   }

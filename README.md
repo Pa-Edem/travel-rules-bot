@@ -11,8 +11,15 @@ Travel Rules Bot помогает путешественникам избежа�
 - 🗺️ **6 стран**: Италия, Турция, ОАЭ, Таиланд, Испания, Германия
 - 📂 **5 категорий**: Транспорт, Алкоголь, Дроны, Медикаменты, Культурные нормы
 - 🌐 **Двуязычность**: Английский и Русский
-- 🔍 **Поиск**: Быстрый поиск по правилам
+- 🔍 **Поиск**: Билингвальный поиск (EN/RU) по правилам
 - 📊 **Аналитика**: Отслеживание популярных запросов
+
+## 🎯 Features
+
+- ✅ Профессиональное логирование (Winston)
+- ✅ Глобальная обработка ошибок с retry
+- ✅ Rate limiting (защита от спама)
+- ✅ In-memory кэширование (ускорение в 1000x)
 
 ## 🚀 Быстрый старт
 
@@ -92,26 +99,66 @@ npm run format:check
 ## 🗂️ Структура проекта
 
 ```
-travel-rules-bot/
-├── src/
-│   ├── bot/                    # Логика бота
-│   │   ├── handlers/          # Обработчики команд
-│   │   └── middlewares/       # Middleware (i18n, session)
-│   ├── database/              # Работа с базой данных
-│   │   ├── repositories/      # Repository pattern
-│   │   └── migrations/        # SQL миграции
-│   ├── locales/               # Переводы
-│   │   ├── en/
-│   │   └── ru/
-│   ├── types/                 # TypeScript типы
-│   ├── config/                # Конфигурация
-│   └── index.ts               # Точка входа
-├── dist/                      # Скомпилированный код
-├── .env                       # Переменные окружения (не в Git!)
-├── .env.example              # Пример переменных окружения
-├── package.json
-├── tsconfig.json
-└── README.md
+travel-rules-bot
+├─ .eslintrc.json
+├─ .prettierrc
+├─ package.json
+├─ README.md
+├─ src
+│  ├─ bot
+│  │  ├─ handlers
+│  │  │  ├─ callbacks
+│  │  │  │  ├─ feedback.callbacks.ts
+│  │  │  │  ├─ navigation.callbacks.ts
+│  │  │  │  ├─ onboarding.callbacks.ts
+│  │  │  │  ├─ premium.callbacks.ts
+│  │  │  │  ├─ search.callbacks.ts
+│  │  │  │  └─ settings.callbacks.ts
+│  │  │  └─ commands
+│  │  ├─ keyboards
+│  │  │  ├─ navigation.keyboards.ts
+│  │  │  ├─ onboarding.keyboards.ts
+│  │  │  ├─ premium.keyboards.ts
+│  │  │  ├─ search.keyboards.ts
+│  │  │  └─ settings.keyboards.ts
+│  │  ├─ middlewares
+│  │  │  ├─ error.middleware.ts
+│  │  │  ├─ i18n.middleware.ts
+│  │  │  ├─ ratelimit.middleware.ts
+│  │  │  └─ session.middleware.ts
+│  │  └─ utils
+│  │     ├─ pagination.helper.ts
+│  │     └─ translate.helper.ts
+│  ├─ config
+│  │  ├─ constants.ts
+│  │  ├─ database.ts
+│  │  └─ index.ts
+│  ├─ database
+│  │  ├─ client.ts
+│  │  ├─ repositories
+│  │  │  ├─ AnalyticsRepository.ts
+│  │  │  ├─ FeedbackRepository.ts
+│  │  │  ├─ RuleRepository.ts
+│  │  │  ├─ SessionRepository.ts
+│  │  │  └─ UserRepository.ts
+│  │  └─ wrappers
+│  │     └─ db-wrapper.ts
+│  ├─ index.ts
+│  ├─ locales
+│  │  ├─ en
+│  │  │  └─ translation.json
+│  │  └─ ru
+│  │     └─ translation.json
+│  ├─ services
+│  │  └─ rule.service.ts
+│  ├─ types
+│  │  ├─ database.types.ts
+│  │  └─ index.ts
+│  └─ utils
+│     ├─ cache.ts
+│     ├─ errors.ts
+│     └─ logger.ts
+└─ tsconfig.json
 ```
 
 ## 🔧 Настройка Telegram Bot
@@ -221,61 +268,3 @@ MIT
 
 **Версия**: 0.1.0 (MVP Development)  
 **Статус**: 🚧 В разработке
-
-```
-travel-rules-bot
-├─ .eslintrc.json
-├─ .prettierrc
-├─ package.json
-├─ README.md
-├─ src
-│  ├─ bot
-│  │  ├─ handlers
-│  │  │  ├─ callbacks
-│  │  │  │  ├─ navigation.callbacks.ts
-│  │  │  │  ├─ onboarding.callbacks.ts
-│  │  │  │  ├─ search.callbacks.ts
-│  │  │  │  └─ settings.callbacks.ts
-│  │  │  └─ commands
-│  │  ├─ keyboards
-│  │  │  ├─ navigation.keyboards.ts
-│  │  │  ├─ onboarding.keyboards.ts
-│  │  │  ├─ search.keyboards.ts
-│  │  │  └─ settings.keyboards.ts
-│  │  ├─ middlewares
-│  │  │  ├─ i18n.middleware.ts
-│  │  │  └─ session.middleware.ts
-│  │  └─ utils
-│  │     ├─ pagination.helper.ts
-│  │     └─ translate.helper.ts
-│  ├─ config
-│  │  ├─ constants.ts
-│  │  ├─ database.ts
-│  │  └─ index.ts
-│  ├─ database
-│  │  ├─ client.ts
-│  │  ├─ migrations
-│  │  │  ├─ 001_initial_schema.sql
-│  │  │  ├─ 002_add_onboarding_field.sql
-│  │  │  └─ 003_add_track_event_function.sql
-│  │  ├─ repositories
-│  │  │  ├─ AnalyticsRepository.ts
-│  │  │  ├─ RuleRepository.ts
-│  │  │  ├─ SessionRepository.ts
-│  │  │  └─ UserRepository.ts
-│  │  └─ seeds
-│  │     └─ example_rules.sql
-│  ├─ index.ts
-│  ├─ locales
-│  │  ├─ en
-│  │  │  └─ translation.json
-│  │  └─ ru
-│  │     └─ translation.json
-│  ├─ services
-│  │  └─ rule.service.ts
-│  └─ types
-│     ├─ database.types.ts
-│     └─ index.ts
-└─ tsconfig.json
-
-```

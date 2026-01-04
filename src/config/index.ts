@@ -5,6 +5,7 @@
  * Загружает и валидирует переменные окружения
  */
 
+import { logger } from '../utils/logger';
 import dotenv from 'dotenv';
 
 // Загружаем переменные окружения из .env файла
@@ -50,7 +51,8 @@ export const config = {
 } as const;
 
 // Логируем конфигурацию при запуске (без секретов)
-console.log('🔧 Конфигурация загружена:');
-console.log(`   Окружение: ${config.env}`);
-console.log(`   Supabase URL: ${config.supabase.url}`);
-console.log(`   Bot token: ${config.bot.token.substring(0, 10)}...`);
+logger.info('Конфигурация успешно загружена', {
+  env: config.env,
+  supabaseUrl: config.supabase.url,
+  botTokenPrefix: config.bot.token.substring(0, 10) + '...',
+});

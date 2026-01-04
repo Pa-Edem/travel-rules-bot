@@ -11,6 +11,13 @@ import { testDatabaseConnection } from './database/client.js';
 import { userRepository } from './database/repositories/UserRepository.js';
 import { i18nMiddleware } from './bot/middlewares/i18n.middleware.js';
 import { sessionMiddleware } from './bot/middlewares/session.middleware.js';
+import { logger } from './utils/logger.js';
+import { errorHandler, telegramErrorMiddleware } from './bot/middlewares/error.middleware.js';
+import { startCacheCleanup } from './utils/cache.js';
+import {
+  rateLimitMiddleware,
+  startRateLimitCleanup,
+} from './bot/middlewares/ratelimit.middleware.js';
 import type { BotContext } from './types/index.js';
 import {
   createLanguageKeyboard,
@@ -83,6 +90,8 @@ const bot = new Bot<BotContext>(config.bot.token);
  */
 bot.use(i18nMiddleware());
 bot.use(sessionMiddleware());
+bot.use(telegramErrorMiddleware());
+bot.use(rateLimitMiddleware());
 
 /**
  * Обработчик команды /start
@@ -125,9 +134,15 @@ bot.command('start', async (ctx) => {
       reply_markup: createMainMenuKeyboard(lang),
     });
 
-    console.log(`✅ Пользователь ${user.id} (@${user.username || 'unknown'})`);
+    logger.info('Пользователь запустил бота', {
+      userId: user.id,
+      username: user.username || 'unknown',
+    });
   } catch (error) {
-    console.error('❌ Ошибка в /start:', error);
+    logger.error('Ошибка в команде /start', {
+      error: error instanceof Error ? error.message : 'Unknown',
+      userId: ctx.from?.id,
+    });
     await ctx.reply(ctx.t('errors.generic'));
   }
 });
@@ -281,39 +296,74 @@ bot.on('message:text', async (ctx) => {
 });
 
 /**
- * Обработчик ошибок
+ * Глобальный обработчик ошибок
  */
-bot.catch((err) => {
-  console.error('❌ ОШИБКА В БОТЕ:');
-  console.error(err);
-});
+/**
+ * Глобальный обработчик ошибок
+ */
+bot.catch(errorHandler);
+// bot.catch((err) => {
+//   const ctx = err.ctx;
+
+//   logger.error('Критическая ошибка в боте', {
+//     error: err.error instanceof Error ? err.error.message : 'Unknown error',
+//     stack: err.error instanceof Error ? err.error.stack : undefined,
+//     userId: ctx.from?.id,
+//     updateType: ctx.update ? Object.keys(ctx.update)[0] : 'unknown',
+//   });
+
+//   // Пытаемся показать пользователю дружелюбное сообщение
+//   try {
+//     ctx.reply(ctx.t('errors.generic')).catch(() => {
+//       // Если даже это не работает - просто логируем
+//       logger.error('Не удалось отправить сообщение об ошибке пользователю', {
+//         userId: ctx.from?.id,
+//       });
+//     });
+//   } catch {
+//     // Игнорируем
+//   }
+// });
 
 /**
  * Запуск бота
  */
 async function startBot() {
   try {
-    console.log('🚀 Запуск Travel Rules Bot...');
+    logger.info('Запуск Travel Rules Bot...');
 
     // Проверяем подключение к базе данных
-    console.log('🔌 Проверка подключения к базе данных...');
+    logger.info('Проверка подключения к базе данных...');
     const dbConnected = await testDatabaseConnection();
 
     if (!dbConnected) {
-      console.error('❌ Не удалось подключиться к базе данных!');
+      logger.error('Не удалось подключиться к базе данных!');
       process.exit(1);
     }
+    logger.info('Подключение к базе данных успешно');
+
+    // Запускаем rate limit cleanup
+    startRateLimitCleanup();
+
+    // Запускаем cache cleanup
+    startCacheCleanup(10);
 
     // Получаем информацию о боте
     const botInfo = await bot.api.getMe();
-    console.log(`✅ Бот запущен: @${botInfo.username}`);
-    console.log(`📝 ID бота: ${botInfo.id}`);
-    console.log(`🔄 Режим: Development (Long Polling)`);
+    logger.info('Бот успешно запущен', {
+      botUsername: botInfo.username,
+      botId: botInfo.id,
+      mode: 'development',
+      pollingType: 'long-polling',
+    });
 
     // Запускаем long polling
     await bot.start();
   } catch (error) {
-    console.error('❌ Ошибка при запуске бота:', error);
+    logger.error('Критическая ошибка при запуске бота', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     process.exit(1);
   }
 }
@@ -322,12 +372,12 @@ async function startBot() {
  * Обработка сигналов завершения
  */
 process.once('SIGINT', () => {
-  console.log('\n⏸️  Останавливаем бота...');
+  logger.info('Получен сигнал SIGINT, останавливаем бота...');
   bot.stop();
 });
 
 process.once('SIGTERM', () => {
-  console.log('\n⏸️  Останавливаем бота...');
+  logger.info('Получен сигнал SIGTERM, останавливаем бота...');
   bot.stop();
 });
 

@@ -8,6 +8,7 @@
  * а потом просто вызываем методы: feedbackRepository.submit(), feedbackRepository.getUserFeedback() и т.д.
  */
 
+import { logger } from '../../utils/logger.js';
 import { supabase } from '../client.js';
 
 /**
@@ -97,22 +98,35 @@ export class FeedbackRepository {
         // Код ошибки 23505 = нарушение UNIQUE constraint
         // Это значит пользователь уже оставлял отзыв на это правило
         if (error.code === '23505') {
-          console.log(
-            `ℹ️ Пользователь ${feedbackData.user_id} уже оставлял отзыв на правило ${feedbackData.rule_id}`
-          );
+          logger.info('Пользователь уже оставлял отзыв на это правило', {
+            user_id: feedbackData.user_id,
+            rule_id: feedbackData.rule_id,
+          });
           return null; // Возвращаем null = "не получилось создать"
         }
 
         // Если другая ошибка - логируем и выбрасываем
-        console.error('❌ Ошибка при отправке отзыва:', error);
+        logger.error('Ошибка при отправке отзыва', {
+          error_message: error.message,
+          user_id: feedbackData.user_id,
+          rule_id: feedbackData.rule_id,
+        });
         throw error;
       }
 
       // Всё ок! Логируем успех и возвращаем созданный отзыв
-      console.log(`✅ Отзыв отправлен: ${data.id} (тип: ${data.feedback_type})`);
+      logger.info('Отзыв успешно отправлен', {
+        feedback_id: data.id,
+        user_id: feedbackData.user_id,
+        rule_id: feedbackData.rule_id,
+      });
       return data as Feedback;
     } catch (err) {
-      console.error('❌ Неожиданная ошибка при отправке отзыва:', err);
+      logger.error('Неожиданная ошибка при отправке отзыва', {
+        error: err instanceof Error ? err.message : 'Unknown error',
+        user_id: feedbackData.user_id,
+        rule_id: feedbackData.rule_id,
+      });
       return null;
     }
   }
@@ -148,14 +162,23 @@ export class FeedbackRepository {
 
       // Если другая ошибка - логируем
       if (error) {
-        console.error('❌ Ошибка при проверке существования отзыва:', error);
+        logger.error('Ошибка при проверке существования отзыва:', {
+          error: error.message,
+          user_id: userId,
+          rule_id: ruleId,
+        });
+
         return false; // На всякий случай возвращаем false
       }
 
       // Если data не null - значит отзыв есть
       return data !== null;
     } catch (err) {
-      console.error('❌ Неожиданная ошибка при проверке отзыва:', err);
+      logger.error('Неожиданная ошибка при проверке существования отзыва:', {
+        error: err instanceof Error ? err.message : 'Unknown error',
+        user_id: userId,
+        rule_id: ruleId,
+      });
       return false;
     }
   }
@@ -165,11 +188,7 @@ export class FeedbackRepository {
    *
    * @param userId - Telegram ID пользователя
    * @param limit - Максимальное количество отзывов (по умолчанию 20)
-   * @returns Массив отзывов
-   *
-   * Пример использования:
-   * const feedbacks = await feedbackRepository.getUserFeedback(123456, 10);
-   * console.log(`Пользователь оставил ${feedbacks.length} отзывов`);
+   * @returns Массив отзывов пользователя
    */
   async getUserFeedback(userId: number, limit: number = 20): Promise<Feedback[]> {
     try {
@@ -181,13 +200,19 @@ export class FeedbackRepository {
         .limit(limit); // Ограничиваем количество
 
       if (error) {
-        console.error('❌ Ошибка при получении отзывов пользователя:', error);
+        logger.error('Ошибка при получении отзывов пользователя:', {
+          error_message: error.message,
+          user_id: userId,
+        });
         return []; // Возвращаем пустой массив при ошибке
       }
 
       return (data || []) as Feedback[]; // Возвращаем массив отзывов
     } catch (err) {
-      console.error('❌ Неожиданная ошибка при получении отзывов:', err);
+      logger.error('Неожиданная ошибка при получении отзывов пользователя:', {
+        error: err instanceof Error ? err.message : 'Unknown error',
+        user_id: userId,
+      });
       return [];
     }
   }
@@ -210,13 +235,18 @@ export class FeedbackRepository {
         .limit(limit);
 
       if (error) {
-        console.error('❌ Ошибка при получении pending отзывов:', error);
+        logger.error('Ошибка при получении pending отзывов:', {
+          error_message: error.message,
+          code: error.code,
+        });
         return [];
       }
 
       return (data || []) as Feedback[];
     } catch (err) {
-      console.error('❌ Неожиданная ошибка при получении pending отзывов:', err);
+      logger.error('Неожиданная ошибка при получении pending отзывов:', {
+        error: err instanceof Error ? err.message : 'Unknown error',
+      });
       return [];
     }
   }

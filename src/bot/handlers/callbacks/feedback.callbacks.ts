@@ -4,6 +4,7 @@
  * Обработчики для кнопок обратной связи 👍/👎
  */
 
+import { logger } from '../../../utils/logger.js';
 import { BotContext } from '../../../types/index.js';
 import { userRepository } from '../../../database/repositories/UserRepository.js';
 import { feedbackRepository } from '../../../database/repositories/FeedbackRepository.js';
@@ -22,7 +23,10 @@ export async function handleRuleFeedbackHelpful(ctx: BotContext) {
   // "feedback_helpful_IT_TRANSPORT_001" → "IT_TRANSPORT_001"
   const ruleId = callbackData.replace('feedback_helpful_', '');
 
-  console.log(`👍 Пользователь ${userId} нажал ПОЛЕЗНО на правило ${ruleId}`);
+  logger.info('Пользователь нажал ПОЛЕЗНО на правило', {
+    userId: userId,
+    ruleId: ruleId,
+  });
 
   // Шаг 3: Получаем язык пользователя
   const user = await userRepository.findById(userId);
@@ -61,7 +65,11 @@ export async function handleRuleFeedbackHelpful(ctx: BotContext) {
     lang === 'ru' ? '✅ Спасибо за отзыв!' : '✅ Thanks for your feedback!'
   );
 
-  console.log(`✅ Положительный отзыв сохранён: feedback_id=${feedback?.id}`);
+  logger.info('Положительный отзыв сохранён', {
+    feedbackId: feedback?.id,
+    userId: userId,
+    ruleId: ruleId,
+  });
 }
 
 // ОБРАБОТЧИК 2: Кнопка "👎 Не полезно"
@@ -76,7 +84,10 @@ export async function handleRuleFeedbackNotHelpful(ctx: BotContext) {
   // Шаг 2: Извлекаем ruleId из callback_data
   const ruleId = callbackData.replace('feedback_not_helpful_', '');
 
-  console.log(`👎 Пользователь ${userId} нажал НЕ ПОЛЕЗНО на правило ${ruleId}`);
+  logger.info('Пользователь нажал НЕ ПОЛЕЗНО на правило', {
+    userId: userId,
+    ruleId: ruleId,
+  });
 
   // Шаг 3: Получаем язык пользователя
   const user = await userRepository.findById(userId);
@@ -102,7 +113,10 @@ export async function handleRuleFeedbackNotHelpful(ctx: BotContext) {
   if (!ctx.session) ctx.session = {};
   ctx.session.awaiting_feedback_text = ruleId;
 
-  console.log(`💬 Режим ожидания текста включен для правила ${ruleId}`);
+  logger.info('Режим ожидания текста включен', {
+    userId: userId,
+    ruleId: ruleId,
+  });
 
   // Шаг 7: Формируем сообщение с просьбой написать детали
   const promptMessage =
@@ -153,8 +167,11 @@ export async function handleFeedbackTextMessage(ctx: BotContext) {
     return;
   }
 
-  console.log(`💬 Получен текстовый отзыв от ${userId} для правила ${ruleId}`);
-  console.log(`📝 Текст: "${messageText}"`);
+  logger.info('Получен текстовый отзыв от пользователя', {
+    userId: userId,
+    ruleId: ruleId,
+    messageText: messageText,
+  });
 
   // Шаг 1: Получаем язык пользователя
   const user = await userRepository.findById(userId);
@@ -170,7 +187,11 @@ export async function handleFeedbackTextMessage(ctx: BotContext) {
     priority: 2, // Высокий приоритет - есть конкретное описание проблемы
   });
 
-  console.log(`✅ Текстовый отзыв сохранён: feedback_id=${feedback?.id}`);
+  logger.info('Текстовый отзыв сохранён', {
+    feedbackId: feedback?.id,
+    userId: userId,
+    ruleId: ruleId,
+  });
 
   // Шаг 3: Трекаем событие в аналитике
   await analyticsRepository.trackEvent(userId, 'feedback_submitted', {
@@ -183,7 +204,9 @@ export async function handleFeedbackTextMessage(ctx: BotContext) {
     delete ctx.session.awaiting_feedback_text;
   }
 
-  console.log(`🔓 Режим ожидания текста выключен`);
+  logger.info('Режим ожидания текста выключен', {
+    userId: userId,
+  });
 
   // Шаг 5: Благодарим пользователя
   const thankYouMessage =
@@ -202,7 +225,10 @@ export async function handleFeedbackCancel(ctx: BotContext) {
   // Получаем ruleId из сессии (для какого правила отменяем)
   const ruleId = ctx.session?.awaiting_feedback_text;
 
-  console.log(`❌ Пользователь ${userId} отменил ввод отзыва для правила ${ruleId}`);
+  logger.info('Пользователь отменил ввод отзыва', {
+    userId: userId,
+    ruleId: ruleId,
+  });
 
   // Шаг 1: Получаем язык пользователя
   const user = await userRepository.findById(userId);
@@ -223,7 +249,11 @@ export async function handleFeedbackCancel(ctx: BotContext) {
       priority: 5, // Средний приоритет (нет деталей)
     });
 
-    console.log(`✅ Отзыв "not_helpful" сохранён (без текста): feedback_id=${feedback?.id}`);
+    logger.info('Отзыв "not_helpful" сохранён (без текста)', {
+      feedbackId: feedback?.id,
+      userId: userId,
+      ruleId: ruleId,
+    });
 
     // Трекаем событие в аналитике
     await analyticsRepository.trackEvent(userId, 'feedback_submitted', {
@@ -237,7 +267,9 @@ export async function handleFeedbackCancel(ctx: BotContext) {
     delete ctx.session.awaiting_feedback_text;
   }
 
-  console.log(`🔓 Режим ожидания текста выключен`);
+  logger.info('Режим ожидания текста выключен', {
+    userId: userId,
+  });
 
   // Шаг 3: Убираем часики на кнопке
   await ctx.answerCallbackQuery();
@@ -247,7 +279,9 @@ export async function handleFeedbackCancel(ctx: BotContext) {
     await ctx.deleteMessage();
   } catch (error) {
     // Иногда сообщение уже удалено - игнорируем ошибку
-    console.log('ℹ️ Не удалось удалить сообщение (возможно уже удалено)');
+    logger.warn('Не удалось удалить сообщение с кнопкой Отмена', {
+      userId: userId,
+    });
   }
 
   // Шаг 5: Показываем подтверждение
@@ -261,7 +295,9 @@ export async function handleSettingsFeedback(ctx: BotContext) {
   const userId = ctx.from?.id;
   if (!userId) return;
 
-  console.log(`💬 Пользователь ${userId} открыл диалог общего отзыва`);
+  logger.info('Пользователь открыл диалог общего отзыва', {
+    userId: userId,
+  });
 
   // Шаг 1: Получаем язык пользователя
   const user = await userRepository.findById(userId);
@@ -271,7 +307,9 @@ export async function handleSettingsFeedback(ctx: BotContext) {
   if (!ctx.session) ctx.session = {};
   ctx.session.awaiting_general_feedback = true;
 
-  console.log(`💬 Режим ожидания общего отзыва включен`);
+  logger.info('Режим ожидания общего отзыва включен', {
+    userId: userId,
+  });
 
   // Шаг 3: Убираем часики на кнопке
   await ctx.answerCallbackQuery();
@@ -321,8 +359,10 @@ export async function handleGeneralFeedbackMessage(ctx: BotContext) {
   // Проверка безопасности
   if (!userId || !messageText) return;
 
-  console.log(`💬 Получен общий отзыв от ${userId}`);
-  console.log(`📝 Текст: "${messageText}"`);
+  logger.info('Получен общий отзыв от пользователя', {
+    userId: userId,
+    messageText: messageText,
+  });
 
   // Шаг 1: Получаем язык пользователя
   const user = await userRepository.findById(userId);
@@ -338,7 +378,10 @@ export async function handleGeneralFeedbackMessage(ctx: BotContext) {
     priority: 4, // Средне-высокий приоритет
   });
 
-  console.log(`✅ Общий отзыв сохранён: feedback_id=${feedback?.id}`);
+  logger.info('Общий отзыв сохранён', {
+    feedbackId: feedback?.id,
+    userId: userId,
+  });
 
   // Шаг 3: Трекаем событие в аналитике
   await analyticsRepository.trackEvent(userId, 'feedback_submitted', {
@@ -351,7 +394,9 @@ export async function handleGeneralFeedbackMessage(ctx: BotContext) {
     delete ctx.session.awaiting_general_feedback;
   }
 
-  console.log(`🔓 Режим ожидания общего отзыва выключен`);
+  logger.info('Режим ожидания общего отзыва выключен', {
+    userId: userId,
+  });
 
   // Шаг 5: Благодарим пользователя
   const thankYouMessage =
@@ -367,7 +412,9 @@ export async function handleGeneralFeedbackCancel(ctx: BotContext) {
   const userId = ctx.from?.id;
   if (!userId) return;
 
-  console.log(`❌ Пользователь ${userId} отменил общий отзыв`);
+  logger.info('Пользователь отменил общий отзыв', {
+    userId: userId,
+  });
 
   // Шаг 1: Получаем язык пользователя
   const user = await userRepository.findById(userId);
@@ -378,7 +425,9 @@ export async function handleGeneralFeedbackCancel(ctx: BotContext) {
     delete ctx.session.awaiting_general_feedback;
   }
 
-  console.log(`🔓 Режим ожидания общего отзыва выключен`);
+  logger.info('Режим ожидания общего отзыва выключен', {
+    userId: userId,
+  });
 
   // Шаг 3: Убираем часики на кнопке
   await ctx.answerCallbackQuery();
@@ -387,7 +436,9 @@ export async function handleGeneralFeedbackCancel(ctx: BotContext) {
   try {
     await ctx.deleteMessage();
   } catch (error) {
-    console.log('ℹ️ Не удалось удалить сообщение');
+    logger.warn('Не удалось удалить сообщение', {
+      userId: userId,
+    });
   }
 
   // Шаг 5: Показываем подтверждение отмены

@@ -4,6 +4,7 @@
  * Обработчики для Premium функционала бота.
  */
 
+import { logger } from '../../../utils/logger.js';
 import { BotContext } from '../../../types/index.js';
 import { userRepository } from '../../../database/repositories/UserRepository.js';
 import { analyticsRepository } from '../../../database/repositories/AnalyticsRepository.js';
@@ -17,7 +18,9 @@ export async function handlePremiumInfo(ctx: BotContext) {
   const userId = ctx.from?.id;
   if (!userId) return;
 
-  console.log(`💎 Пользователь ${userId} открыл страницу Premium`);
+  logger.info('Пользователь открыл страницу Premium', {
+    userId: userId,
+  });
 
   // Шаг 1: Получаем данные пользователя
   const user = await userRepository.findById(userId);
@@ -118,7 +121,9 @@ export async function handlePremiumNotify(ctx: BotContext) {
   const userId = ctx.from?.id;
   if (!userId) return;
 
-  console.log(`🔔 Пользователь ${userId} нажал "Уведомить меня" для Premium`);
+  logger.info('Пользователь нажал "Уведомить меня" для Premium', {
+    userId: userId,
+  });
 
   // Шаг 1: Получаем данные пользователя
   const user = await userRepository.findById(userId);
@@ -138,7 +143,9 @@ export async function handlePremiumNotify(ctx: BotContext) {
     premium_interested: true,
   });
 
-  console.log(`✅ Пользователь ${userId} добавлен в Premium waitlist`);
+  logger.info('Пользователь добавлен в Premium waitlist', {
+    userId: userId,
+  });
 
   // Шаг 4: Трекаем событие
   await analyticsRepository.trackEvent(userId, 'premium_waitlist_joined', {

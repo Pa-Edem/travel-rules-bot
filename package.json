@@ -30,7 +30,9 @@
     "@grammyjs/i18n": "^1.1.2",
     "@supabase/supabase-js": "^2.45.4",
     "dotenv": "^16.4.5",
-    "grammy": "^1.30.0"
+    "grammy": "^1.30.0",
+    "winston": "^3.19.0",
+    "winston-daily-rotate-file": "^5.0.0"
   },
   "devDependencies": {
     "@types/node": "^22.10.1",

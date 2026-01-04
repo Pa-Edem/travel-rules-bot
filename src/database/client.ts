@@ -6,6 +6,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
+import { logger } from '../utils/logger.js';
 import { config } from '../config/index.js';
 
 /**
@@ -24,15 +25,21 @@ export async function testDatabaseConnection(): Promise<boolean> {
     const { data, error } = await supabase.from('countries').select('code').limit(1);
 
     if (error) {
-      console.error('❌ Ошибка подключения к БД:', error.message);
+      logger.error('Database connection error:', {
+        message: error.message,
+        code: error.code,
+      });
       return false;
     }
 
-    console.log('✅ Подключение к БД успешно!');
-    console.log(`📊 Тестовый запрос выполнен: найдено ${data?.length || 0} записей`);
+    logger.info('Подключение к БД успешно!', {
+      recordsFound: data?.length || 0,
+    });
     return true;
   } catch (err) {
-    console.error('❌ Критическая ошибка подключения к БД:', err);
+    logger.error('Critical database connection error:', {
+      error: err instanceof Error ? err.message : 'Unknown error',
+    });
     return false;
   }
 }

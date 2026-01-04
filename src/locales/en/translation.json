@@ -94,8 +94,12 @@
     }
   },
   "errors": {
-    "generic": "An error occurred. Please try again later.",
-    "user_data": "Error: could not retrieve user data",
+    "generic": "😔 Something went wrong. Please try again later.",
+    "database": "🔧 Service temporarily unavailable. We're working on it.",
+    "not_found": "❌ Information not found.",
+    "rate_limit": "⏱ Too many requests. Please wait a moment.",
+    "telegram_api": "⚠️ Unable to process your request. Please try again.",
+    "user_data": "❌ Unable to retrieve user data. Please try /start again.",
     "unknown_command": "Unknown command. Use /help to see available commands."
   }
 }

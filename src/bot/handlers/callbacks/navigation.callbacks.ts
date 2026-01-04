@@ -20,6 +20,7 @@ import { ruleRepository } from '../../../database/repositories/RuleRepository.js
 import { formatRuleDetailed } from '../../../services/rule.service.js';
 import { paginate, formatPageCounter } from '../../utils/pagination.helper.js';
 import { analyticsRepository } from '../../../database/repositories/AnalyticsRepository.js';
+import { logger } from '../../../utils/logger.js';
 
 export async function handleShowCountries(ctx: BotContext) {
   const userId = ctx.from?.id;
@@ -106,8 +107,12 @@ export async function handleCategorySelection(ctx: BotContext) {
   try {
     await showRulesList(ctx, countryCode, categoryId, 1);
     await ctx.answerCallbackQuery();
-  } catch (error) {
-    console.error('❌ Ошибка при загрузке правил:', error);
+  } catch (err) {
+    logger.error('Ошибка при загрузке правил:', {
+      error: err instanceof Error ? err.message : 'Unknown error',
+      country: countryCode,
+      category: categoryId,
+    });
     await ctx.answerCallbackQuery('❌ Ошибка при загрузке правил');
   }
 }
@@ -234,7 +239,10 @@ export async function handleRuleView(ctx: BotContext) {
 
     await ctx.answerCallbackQuery();
   } catch (error) {
-    console.error('❌ Ошибка при просмотре правила:', error);
+    logger.error('Ошибка при просмотре правила:', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      ruleId: ruleId,
+    });
     await ctx.answerCallbackQuery('❌ Ошибка при загрузке правила');
   }
 }
@@ -257,7 +265,10 @@ export async function handlePagePrev(ctx: BotContext) {
     await showRulesList(ctx, ctx.session.current_country, ctx.session.current_category, newPage);
     await ctx.answerCallbackQuery();
   } catch (error) {
-    console.error('❌ Ошибка при переходе на предыдущую страницу:', error);
+    logger.error('Ошибка при переходе на предыдущую страницу:', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      country: ctx.session.current_country,
+    });
     await ctx.answerCallbackQuery('❌ Ошибка при загрузке страницы');
   }
 }
@@ -280,7 +291,10 @@ export async function handlePageNext(ctx: BotContext) {
     await showRulesList(ctx, ctx.session.current_country, ctx.session.current_category, newPage);
     await ctx.answerCallbackQuery();
   } catch (error) {
-    console.error('❌ Ошибка при переходе на следующую страницу:', error);
+    logger.error('Ошибка при переходе на следующую страницу:', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      country: ctx.session.current_country,
+    });
     await ctx.answerCallbackQuery('❌ Ошибка при загрузке страницы');
   }
 }

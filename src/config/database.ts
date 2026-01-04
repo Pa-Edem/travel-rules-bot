@@ -4,6 +4,7 @@
  * Конфигурация подключения к базе данных Supabase
  */
 
+import { logger } from '../utils/logger.js';
 import { createClient } from '@supabase/supabase-js';
 
 // Проверяем наличие необходимых переменных окружения
@@ -36,14 +37,19 @@ export async function checkDatabaseConnection(): Promise<boolean> {
     const { error } = await supabase.from('countries').select('count').limit(1);
 
     if (error) {
-      console.error('❌ Ошибка подключения к Supabase:', error.message);
+      logger.error('Ошибка подключения к Supabase:', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        code: error.code,
+      });
       return false;
     }
 
-    console.log('✅ Подключение к Supabase успешно');
+    logger.info('Успешное подключение к базе данных Supabase');
     return true;
   } catch (error) {
-    console.error('❌ Не удалось подключиться к Supabase:', error);
+    logger.error('Не удалось подключиться к Supabase:', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
     return false;
   }
 }

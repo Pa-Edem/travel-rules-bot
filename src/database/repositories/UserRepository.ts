@@ -5,6 +5,8 @@
  */
 
 import { supabase } from '../client.js';
+import { logger } from '../../utils/logger.js';
+import { withRetry, withSilentFail } from '../wrappers/db-wrapper.js';
 
 // Обновленные типы с добавлением onboarding_done
 export interface User {
@@ -64,24 +66,34 @@ export interface UserUpdate {
 export class UserRepository {
   // Найти пользователя по Telegram ID
   async findById(telegramId: number): Promise<User | null> {
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', telegramId)
-      .is('deleted_at', null) // Только активные пользователи
-      .single(); // Ожидаем одну запись
+    return await withRetry(
+      async () => {
+        const { data, error } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', telegramId)
+          .is('deleted_at', null) // Только активные пользователи
+          .single(); // Ожидаем одну запись
 
-    if (error) {
-      // Если пользователь не найден - это нормально, возвращаем null
-      if (error.code === 'PGRST116') {
-        return null;
-      }
-      // Другие ошибки логируем
-      console.error('Ошибка при поиске пользователя:', error);
-      throw error;
-    }
+        if (error) {
+          // Если пользователь не найден - это нормально, возвращаем null
+          if (error.code === 'PGRST116') {
+            return null;
+          }
+          // Другие ошибки логируем
+          // logger.error('Ошибка при поиске пользователя', {
+          //   error: error.message,
+          //   userId: telegramId,
+          //   code: error.code,
+          // });
+          throw error;
+        }
 
-    return data as User;
+        return data as User;
+      },
+      3,
+      'findUserById'
+    );
   }
 
   // Создать нового пользователя
@@ -97,11 +109,19 @@ export class UserRepository {
       .single();
 
     if (error) {
-      console.error('Ошибка при создании пользователя:', error);
+      logger.error('Ошибка при создании пользователя', {
+        error: error.message,
+        userId: userData.id,
+        code: error.code,
+      });
       throw error;
     }
 
-    console.log(`✅ Создан новый пользователь: ${data.id} (@${data.username || 'no_username'})`);
+    logger.info('Создан новый пользователь', {
+      userId: data.id,
+      username: data.username || 'no_username',
+      language: data.language_code,
+    });
     return data as User;
   }
 
@@ -118,9 +138,18 @@ export class UserRepository {
       .single();
 
     if (error) {
-      console.error('Ошибка при обновлении пользователя:', error);
+      logger.error('Ошибка при обновлении пользователя', {
+        error: error.message,
+        userId: telegramId,
+        code: error.code,
+      });
       throw error;
     }
+
+    logger.debug('Обновлены данные пользователя', {
+      userId: telegramId,
+      fields: Object.keys(updates),
+    });
 
     return data as User;
   }
@@ -141,19 +170,32 @@ export class UserRepository {
 
   //Увеличить счетчик просмотров правил пользователя
   async incrementViews(userId: number): Promise<void> {
-    try {
+    // try {
+    //   const { error } = await supabase.rpc('increment_user_views', {
+    //     user_id: userId,
+    //   });
+    //   if (error) {
+    //     logger.warn('Ошибка при увеличении счетчика просмотров пользователя', {
+    //       error: error.message,
+    //       userId,
+    //       code: error.code,
+    //     });
+    //     // Не бросаем ошибку - это не критично для UX
+    //   }
+    // } catch (err) {
+    //   logger.warn('Неожиданная ошибка при увеличении просмотров', {
+    //     error: err instanceof Error ? err.message : 'Unknown error',
+    //     userId,
+    //   });
+    //   // Игнорируем - не критично для UX
+    // }
+    await withSilentFail(async () => {
       const { error } = await supabase.rpc('increment_user_views', {
         user_id: userId,
       });
 
-      if (error) {
-        console.error('⚠️ Ошибка при увеличении счетчика просмотров пользователя:', error);
-        // Не бросаем ошибку - это не критично для UX
-      }
-    } catch (err) {
-      console.error('⚠️ Неожиданная ошибка при увеличении просмотров:', err);
-      // Игнорируем - не критично
-    }
+      if (error) throw error;
+    }, 'incrementUserViews');
   }
 }
 

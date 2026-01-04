@@ -6,6 +6,8 @@
  */
 
 import { supabase } from '../client.js';
+import { logger } from '../../utils/logger.js';
+import { cache, CacheKeys } from '../../utils/cache.js';
 
 /**
  * Интерфейс правила из БД
@@ -61,9 +63,20 @@ export class RuleRepository {
       .order('severity', { ascending: false }); // critical → high → medium → low
 
     if (error) {
-      console.error('❌ Ошибка при получении правил:', error);
+      logger.error('Ошибка при получении правил', {
+        error: error.message,
+        countryCode,
+        category,
+        code: error.code,
+      });
       throw error;
     }
+
+    logger.debug('Получены правила из БД', {
+      countryCode,
+      category,
+      count: data?.length || 0,
+    });
 
     return (data || []) as Rule[];
   }
@@ -82,9 +95,15 @@ export class RuleRepository {
     if (error) {
       // Код PGRST116 = запись не найдена
       if (error.code === 'PGRST116') {
+        logger.debug('Правило не найдено', { ruleId });
         return null;
       }
-      console.error('❌ Ошибка при получении правила:', error);
+
+      logger.error('Ошибка при получении правила', {
+        error: error.message,
+        ruleId,
+        code: error.code,
+      });
       throw error;
     }
 
@@ -92,16 +111,80 @@ export class RuleRepository {
   }
 
   /**
+   * Получить популярные правила (топ-10 по просмотрам)
+   * С кэшированием на 1 час
+   */
+  async getPopularRules(limit: number = 10): Promise<Rule[]> {
+    try {
+      // Проверяем кэш
+      const cacheKey = CacheKeys.popularRules();
+      const cached = cache.get<Rule[]>(cacheKey);
+
+      if (cached) {
+        logger.debug('Популярные правила получены из кэша', { count: cached.length });
+        return cached;
+      }
+
+      // Запрашиваем из БД
+      logger.debug('Запрос популярных правил из БД');
+
+      const { data, error } = await supabase
+        .from('rules')
+        .select('*')
+        .is('deleted_at', null)
+        .order('views', { ascending: false })
+        .limit(limit);
+
+      if (error) {
+        logger.error('Ошибка при получении популярных правил', {
+          error: error.message,
+          code: error.code,
+        });
+        throw error;
+      }
+
+      const rules = (data || []) as Rule[];
+
+      // Сохраняем в кэш на 1 час
+      cache.set(cacheKey, rules, 3600);
+
+      logger.info('Популярные правила получены из БД и закэшированы', {
+        count: rules.length,
+        ttl: '1 hour',
+      });
+
+      return rules;
+    } catch (err) {
+      logger.error('Неожиданная ошибка при получении популярных правил', {
+        error: err instanceof Error ? err.message : 'Unknown error',
+      });
+      throw err;
+    }
+  }
+
+  /**
    * Увеличить счетчик просмотров
    */
   async incrementViews(ruleId: string): Promise<void> {
-    const { error } = await supabase.rpc('increment_rule_views', {
-      rule_id: ruleId,
-    });
+    try {
+      const { error } = await supabase.rpc('increment_rule_views', {
+        rule_id: ruleId,
+      });
 
-    if (error) {
-      console.error('⚠️ Ошибка при увеличении просмотров:', error);
-      // Не бросаем ошибку - это не критично
+      if (error) {
+        logger.warn('Ошибка при увеличении просмотров правила', {
+          error: error.message,
+          ruleId,
+          code: error.code,
+        });
+        // Не бросаем ошибку - это не критично
+      }
+    } catch (err) {
+      logger.warn('Неожиданная ошибка при увеличении просмотров', {
+        error: err instanceof Error ? err.message : 'Unknown error',
+        ruleId,
+      });
+      // Игнорируем - не критично
     }
   }
 
@@ -142,11 +225,16 @@ export class RuleRepository {
       const { data, error } = await queryBuilder;
 
       if (error) {
-        console.error('❌ Ошибка при поиске правил:', error);
+        logger.error('Ошибка при поиске правил', {
+          error: error.message,
+          query,
+          code: error.code,
+        });
         throw error;
       }
 
       if (!data || data.length === 0) {
+        logger.debug('Поиск не дал результатов', { query });
         return [];
       }
 
@@ -171,9 +259,20 @@ export class RuleRepository {
         return bScore - aScore;
       });
 
+      const results = filteredRules.slice(0, limit);
+
+      logger.info('Поиск выполнен успешно', {
+        query,
+        totalFound: filteredRules.length,
+        returned: results.length,
+      });
+
       return filteredRules.slice(0, limit);
     } catch (err) {
-      console.error('❌ Неожиданная ошибка при поиске:', err);
+      logger.error('Неожиданная ошибка при поиске', {
+        error: err instanceof Error ? err.message : 'Unknown error',
+        query,
+      });
       return [];
     }
   }

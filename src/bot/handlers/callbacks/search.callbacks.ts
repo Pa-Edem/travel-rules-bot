@@ -4,6 +4,7 @@
  * Обработчики поиска правил
  */
 
+import { logger } from '../../../utils/logger.js';
 import { BotContext } from '../../../types/index.js';
 import { userRepository } from '../../../database/repositories/UserRepository.js';
 import { ruleRepository } from '../../../database/repositories/RuleRepository.js';
@@ -152,7 +153,12 @@ export async function handleSearchQuery(ctx: BotContext) {
     // Показываем результаты
     await showSearchResults(ctx, lang, query, results, 1);
   } catch (error) {
-    console.error('❌ Ошибка при поиске правил:', error);
+    logger.error('Ошибка при поиске правил:', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      userId: ctx.from?.id,
+      query,
+    });
+
     await ctx.reply(translate(lang, 'errors.generic'));
   }
 }
@@ -488,7 +494,11 @@ async function performSearchWithFilters(ctx: BotContext) {
     await ctx.answerCallbackQuery();
     await showSearchResults(ctx, lang, query, results, 1, true);
   } catch (error) {
-    console.error('❌ Ошибка при поиске с фильтрами:', error);
+    logger.error('Ошибка при поиске правил с фильтрами:', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      userId: ctx.from?.id,
+      query,
+    });
     await ctx.answerCallbackQuery('❌ Ошибка при поиске');
   }
 }

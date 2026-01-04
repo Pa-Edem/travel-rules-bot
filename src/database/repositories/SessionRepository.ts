@@ -10,6 +10,7 @@
  * - Какую категорию просматривает
  */
 
+import { logger } from '../../utils/logger.js';
 import { supabase } from '../client.js';
 
 /**
@@ -62,7 +63,11 @@ export class SessionRepository {
       if (error.code === 'PGRST116') {
         return {};
       }
-      console.error('Ошибка при получении сессии:', error);
+      logger.error('Ошибка при получении сессии', {
+        error: error.message,
+        userId,
+        code: error.code,
+      });
       return {};
     }
 
@@ -87,7 +92,11 @@ export class SessionRepository {
     );
 
     if (error) {
-      console.error('Ошибка при сохранении сессии:', error);
+      logger.error('Ошибка при сохранении сессии', {
+        error: error.message,
+        userId,
+        code: error.code,
+      });
       throw error;
     }
   }
@@ -121,7 +130,11 @@ export class SessionRepository {
     const { error } = await supabase.from('sessions').delete().eq('user_id', userId);
 
     if (error) {
-      console.error('Ошибка при удалении сессии:', error);
+      logger.error('Ошибка при удалении сессии', {
+        error: error.message,
+        userId,
+        code: error.code,
+      });
       throw error;
     }
   }
