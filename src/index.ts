@@ -120,7 +120,7 @@ bot.command('start', async (ctx) => {
     // ПРОВЕРКА: прошел ли пользователь онбординг?
     if (!user.onboarding_done) {
       // Показываем экран выбора языка
-      await ctx.reply('🌍 Добро пожаловать!\n\nВыберите язык / Choose your language:', {
+      await ctx.reply(ctx.t('onboarding.language.title'), {
         reply_markup: createLanguageKeyboard(),
       });
       return;
@@ -128,9 +128,7 @@ bot.command('start', async (ctx) => {
 
     // Если онбординг пройден - показываем главное меню
     const lang = user.language_code === 'ru' ? 'ru' : 'en';
-    const menuTitle = lang === 'ru' ? '📋 Главное меню' : '📋 Main Menu';
-
-    await ctx.reply(menuTitle, {
+    await ctx.reply(ctx.t('menu.main_title'), {
       reply_markup: createMainMenuKeyboard(lang),
     });
 

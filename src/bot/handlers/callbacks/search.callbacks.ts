@@ -20,10 +20,7 @@ import {
 } from '../../keyboards/search.keyboards.js';
 import { analyticsRepository } from '../../../database/repositories/AnalyticsRepository.js';
 
-/**
- * Обработчик кнопки "🔍 Поиск правил" из главного меню
- * Запускает режим ожидания ввода текста для поиска
- */
+// Обработчик кнопки "🔍 Поиск правил" из главного меню
 export async function handleSearchStart(ctx: BotContext) {
   const userId = ctx.from?.id;
   if (!userId) return;
@@ -62,9 +59,7 @@ export async function handleSearchStart(ctx: BotContext) {
   }
 }
 
-/**
- * Обработчик отмены поиска
- */
+// Обработчик отмены поиска
 export async function handleSearchCancel(ctx: BotContext) {
   const userId = ctx.from?.id;
   if (!userId) return;
@@ -92,10 +87,7 @@ export async function handleSearchCancel(ctx: BotContext) {
   });
 }
 
-/**
- * Обработчик текстового ввода в режиме поиска
- * Вызывается когда пользователь отправляет текст в режиме search_mode
- */
+// Обработчик текстового ввода в режиме поиска
 export async function handleSearchQuery(ctx: BotContext) {
   const userId = ctx.from?.id;
   const query = ctx.message?.text;
@@ -163,9 +155,7 @@ export async function handleSearchQuery(ctx: BotContext) {
   }
 }
 
-/**
- * Обработчик кнопки "Новый поиск"
- */
+// Обработчик кнопки "Новый поиск"
 export async function handleSearchNew(ctx: BotContext) {
   // Очищаем предыдущие результаты
   if (ctx.session) {
@@ -177,9 +167,7 @@ export async function handleSearchNew(ctx: BotContext) {
   await handleSearchStart(ctx);
 }
 
-/**
- * Обработчик кнопки "Показать фильтры"
- */
+// Обработчик кнопки "Показать фильтры"
 export async function handleSearchShowFilters(ctx: BotContext) {
   const userId = ctx.from?.id;
   if (!userId) return;
@@ -196,9 +184,7 @@ export async function handleSearchShowFilters(ctx: BotContext) {
   });
 }
 
-/**
- * Обработчик возврата к результатам поиска из фильтров
- */
+// Обработчик возврата к результатам поиска из фильтров
 export async function handleSearchBackToResults(ctx: BotContext) {
   const userId = ctx.from?.id;
   if (!userId) return;
@@ -221,9 +207,7 @@ export async function handleSearchBackToResults(ctx: BotContext) {
   await showSearchResults(ctx, lang, query, results, page, true);
 }
 
-/**
- * Обработчик выбора фильтра "Страна"
- */
+// Обработчик выбора фильтра "Страна"
 export async function handleFilterCountry(ctx: BotContext) {
   const userId = ctx.from?.id;
   if (!userId) return;
@@ -238,9 +222,7 @@ export async function handleFilterCountry(ctx: BotContext) {
   });
 }
 
-/**
- * Обработчик выбора конкретной страны для фильтра
- */
+// Обработчик выбора конкретной страны для фильтра
 export async function handleFilterCountrySelect(ctx: BotContext) {
   const callbackData = ctx.callbackQuery?.data;
   if (!callbackData) return;
@@ -265,9 +247,7 @@ export async function handleFilterCountrySelect(ctx: BotContext) {
   }
 }
 
-/**
- * Обработчик выбора фильтра "Категория"
- */
+// Обработчик выбора фильтра "Категория"
 export async function handleFilterCategory(ctx: BotContext) {
   const userId = ctx.from?.id;
   if (!userId) return;
@@ -282,9 +262,7 @@ export async function handleFilterCategory(ctx: BotContext) {
   });
 }
 
-/**
- * Обработчик выбора конкретной категории для фильтра
- */
+// Обработчик выбора конкретной категории для фильтра
 export async function handleFilterCategorySelect(ctx: BotContext) {
   const callbackData = ctx.callbackQuery?.data;
   if (!callbackData) return;
@@ -309,9 +287,7 @@ export async function handleFilterCategorySelect(ctx: BotContext) {
   }
 }
 
-/**
- * Обработчик кнопки "Сбросить фильтры"
- */
+// Обработчик кнопки "Сбросить фильтры"
 export async function handleSearchClearFilters(ctx: BotContext) {
   // Очищаем фильтры
   if (ctx.session?.search_filters) {
@@ -330,12 +306,10 @@ export async function handleSearchClearFilters(ctx: BotContext) {
   }
 }
 
-/**
- * Обработчик пагинации поиска - предыдущая страница
- */
+// Обработчик пагинации поиска - предыдущая страница
 export async function handleSearchPagePrev(ctx: BotContext) {
   if (!ctx.session?.search_results) {
-    await ctx.answerCallbackQuery('⚠️ Результаты поиска не найдены');
+    await ctx.answerCallbackQuery(ctx.t('errors.search_results_not_found'));
     return;
   }
 
@@ -361,12 +335,10 @@ export async function handleSearchPagePrev(ctx: BotContext) {
   );
 }
 
-/**
- * Обработчик пагинации поиска - следующая страница
- */
+// Обработчик пагинации поиска - следующая страница
 export async function handleSearchPageNext(ctx: BotContext) {
   if (!ctx.session?.search_results) {
-    await ctx.answerCallbackQuery('⚠️ Результаты поиска не найдены');
+    await ctx.answerCallbackQuery(ctx.t('errors.search_results_not_found'));
     return;
   }
 
@@ -392,16 +364,12 @@ export async function handleSearchPageNext(ctx: BotContext) {
   );
 }
 
-/**
- * Обработчик клика на счетчик страниц (ничего не делает)
- */
+// Обработчик клика на счетчик страниц (ничего не делает)
 export async function handleSearchPageCurrent(ctx: BotContext) {
   await ctx.answerCallbackQuery();
 }
 
-/**
- * Обработчик клика на заголовок страны (ничего не делает)
- */
+// Обработчик клика на заголовок страны (ничего не делает)
 export async function handleSearchCountryHeader(ctx: BotContext) {
   await ctx.answerCallbackQuery();
 }
@@ -410,9 +378,7 @@ export async function handleSearchCountryHeader(ctx: BotContext) {
 // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
 // ============================================================================
 
-/**
- * Показать результаты поиска
- */
+// Показать результаты поиска
 async function showSearchResults(
   ctx: BotContext,
   lang: 'en' | 'ru',
@@ -462,9 +428,7 @@ async function showSearchResults(
   }
 }
 
-/**
- * Выполнить поиск с текущими фильтрами
- */
+// Выполнить поиск с текущими фильтрами
 async function performSearchWithFilters(ctx: BotContext) {
   const userId = ctx.from?.id;
   const query = ctx.session?.search_query;
@@ -499,6 +463,6 @@ async function performSearchWithFilters(ctx: BotContext) {
       userId: ctx.from?.id,
       query,
     });
-    await ctx.answerCallbackQuery('❌ Ошибка при поиске');
+    await ctx.answerCallbackQuery(ctx.t('errors.search_error'));
   }
 }

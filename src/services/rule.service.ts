@@ -5,35 +5,29 @@
  * Бизнес-логика для работы с правилами: форматирование, отображение
  */
 
+import { translate } from '../bot/utils/translate.helper.js';
 import type { Rule } from '../database/repositories/RuleRepository.js';
 
-/**
- * Маппинг severity на эмодзи и текст
- */
+// Маппинг severity на эмодзи и текст
 const SEVERITY_MAP = {
-  critical: { emoji: '🔴', text: 'Критично', textEn: 'Critical' },
-  high: { emoji: '🟠', text: 'Высокий', textEn: 'High' },
-  medium: { emoji: '🟡', text: 'Средний', textEn: 'Medium' },
-  low: { emoji: '🟢', text: 'Низкий', textEn: 'Low' },
+  critical: '🔴',
+  high: '🟠',
+  medium: '🟡',
+  low: '🟢',
 } as const;
 
-/**
- * Получить эмодзи для severity
- */
+// Получить эмодзи для severity
 export function getSeverityEmoji(severity: Rule['severity']): string {
-  return SEVERITY_MAP[severity].emoji;
+  return SEVERITY_MAP[severity];
 }
 
-/**
- * Получить текст для severity
- */
+// Получить текст для severity
 export function getSeverityText(severity: Rule['severity'], language: 'en' | 'ru'): string {
-  return language === 'ru' ? SEVERITY_MAP[severity].text : SEVERITY_MAP[severity].textEn;
+  const key = `rules.severity_${severity}`;
+  return translate(language, key as any);
 }
 
-/**
- * Форматировать штраф для отображения
- */
+// Форматировать штраф для отображения
 export function formatFine(
   fine_min: number | null,
   fine_max: number | null,
@@ -45,7 +39,7 @@ export function formatFine(
   }
 
   const currencySymbol = fine_currency === 'EUR' ? '€' : fine_currency;
-  const fineText = language === 'ru' ? 'Штраф' : 'Fine';
+  const fineText = translate(language, 'rules.fine_label');
 
   return `${fineText}: ${currencySymbol}${fine_min} - ${currencySymbol}${fine_max}`;
 }
@@ -64,16 +58,14 @@ export function formatRuleDetailed(rule: Rule, language: 'en' | 'ru'): string {
   let text = `${severityEmoji} <b>${content.title}</b>\n\n`;
 
   // Уровень серьезности
-  const severityLabel = language === 'ru' ? 'Серьезность' : 'Severity';
-  text += `📊 ${severityLabel}: ${severityText}\n\n`;
+  text += `📊 ${translate(language, 'rules.severity')}: ${severityText}\n\n`;
 
   // Описание
   text += `📝 ${content.description}\n\n`;
 
   // Детали (если есть)
   if (content.details && content.details.trim()) {
-    const detailsTitle = language === 'ru' ? 'ℹ️ Подробности:' : 'ℹ️ Details:';
-    text += `<b>${detailsTitle}</b>\n`;
+    text += `<b>${translate(language, 'rules.details_title')}</b>\n`;
 
     // Разбиваем на строки и форматируем как список
     const detailsLines = content.details.split('\n').filter((line) => line.trim());
@@ -85,14 +77,12 @@ export function formatRuleDetailed(rule: Rule, language: 'en' | 'ru'): string {
 
   // Штраф
   if (rule.fine_min && rule.fine_max) {
-    const fineLabel = language === 'ru' ? 'Штраф' : 'Fine';
-    text += `💰 <b>${fineLabel}:</b> ${rule.fine_min}-${rule.fine_max} ${rule.fine_currency}\n\n`;
+    text += `💰 <b>${translate(language, 'rules.fine_label')}:</b> ${rule.fine_min}-${rule.fine_max} ${rule.fine_currency}\n\n`;
   }
 
   // Источники
   if (rule.sources && rule.sources.length > 0) {
-    const sourcesTitle = language === 'ru' ? 'Источники' : 'Sources';
-    text += `📚 <b>${sourcesTitle}:</b>\n`;
+    text += `📚 <b>${translate(language, 'rules.sources_title')}:</b>\n`;
     rule.sources.forEach((source, index) => {
       text += `${index + 1}. <a href="${source.url}">${source.title}</a>\n`;
     });

@@ -9,23 +9,12 @@ import { translate } from '../utils/translate.helper.js';
 import { COUNTRIES, CATEGORIES } from '../../config/constants.js';
 import type { Rule } from '../../database/repositories/RuleRepository.js';
 
-/**
- * Клавиатура с кнопкой "Отмена" для режима ожидания ввода поиска
- */
+// Клавиатура с кнопкой "Отмена" для режима ожидания ввода поиска
 export function createSearchCancelKeyboard(lang: 'en' | 'ru'): InlineKeyboard {
-  const cancelText = lang === 'ru' ? '❌ Отмена' : '❌ Cancel';
-  return new InlineKeyboard().text(cancelText, 'search_cancel');
+  return new InlineKeyboard().text(translate(lang, 'search.cancel'), 'search_cancel');
 }
 
-/**
- * Клавиатура результатов поиска с правилами
- *
- * @param rules - Найденные правила
- * @param currentPage - Текущая страница
- * @param totalPages - Всего страниц
- * @param lang - Язык
- * @param hasFilters - Есть ли активные фильтры
- */
+// Клавиатура результатов поиска с правилами
 export function createSearchResultsKeyboard(
   rules: Rule[],
   currentPage: number,
@@ -65,19 +54,19 @@ export function createSearchResultsKeyboard(
 
     if (hasPrev && hasNext) {
       keyboard
-        .text('⬅️ ' + (lang === 'ru' ? 'Назад' : 'Prev'), 'search_page_prev')
+        .text(translate(lang, 'navigation.buttons.prev'), 'search_page_prev')
         .text(`${currentPage}/${totalPages}`, 'search_page_current')
-        .text((lang === 'ru' ? 'Далее' : 'Next') + ' ➡️', 'search_page_next')
+        .text(translate(lang, 'navigation.buttons.next'), 'search_page_next')
         .row();
     } else if (hasPrev) {
       keyboard
-        .text('⬅️ ' + (lang === 'ru' ? 'Назад' : 'Prev'), 'search_page_prev')
+        .text(translate(lang, 'navigation.buttons.prev'), 'search_page_prev')
         .text(`${currentPage}/${totalPages}`, 'search_page_current')
         .row();
     } else if (hasNext) {
       keyboard
         .text(`${currentPage}/${totalPages}`, 'search_page_current')
-        .text((lang === 'ru' ? 'Далее' : 'Next') + ' ➡️', 'search_page_next')
+        .text(translate(lang, 'navigation.buttons.next'), 'search_page_next')
         .row();
     }
   }
@@ -92,13 +81,7 @@ export function createSearchResultsKeyboard(
   return keyboard;
 }
 
-/**
- * Клавиатура фильтров поиска
- *
- * @param selectedCountry - Выбранная страна (или null для "все")
- * @param selectedCategory - Выбранная категория (или null для "все")
- * @param lang - Язык
- */
+// Клавиатура фильтров поиска
 export function createSearchFiltersKeyboard(
   selectedCountry: string | null,
   selectedCategory: string | null,
@@ -146,9 +129,7 @@ export function createSearchFiltersKeyboard(
   return keyboard;
 }
 
-/**
- * Клавиатура выбора страны для фильтра
- */
+// Клавиатура выбора страны для фильтра
 export function createFilterCountryKeyboard(lang: 'en' | 'ru'): InlineKeyboard {
   const keyboard = new InlineKeyboard();
   const allText = translate(lang, 'search.filter_all');
@@ -172,9 +153,7 @@ export function createFilterCountryKeyboard(lang: 'en' | 'ru'): InlineKeyboard {
   return keyboard;
 }
 
-/**
- * Клавиатура выбора категории для фильтра
- */
+// Клавиатура выбора категории для фильтра
 export function createFilterCategoryKeyboard(lang: 'en' | 'ru'): InlineKeyboard {
   const keyboard = new InlineKeyboard();
   const allText = translate(lang, 'search.filter_all');
@@ -194,9 +173,7 @@ export function createFilterCategoryKeyboard(lang: 'en' | 'ru'): InlineKeyboard 
   return keyboard;
 }
 
-/**
- * Клавиатура "Ничего не найдено"
- */
+// Клавиатура "Ничего не найдено"
 export function createNoResultsKeyboard(lang: 'en' | 'ru'): InlineKeyboard {
   const keyboard = new InlineKeyboard();
 
@@ -208,9 +185,7 @@ export function createNoResultsKeyboard(lang: 'en' | 'ru'): InlineKeyboard {
   return keyboard;
 }
 
-/**
- * Получить эмодзи для уровня серьезности
- */
+// Получить эмодзи для уровня серьезности
 function getSeverityEmoji(severity: string): string {
   switch (severity) {
     case 'critical':
@@ -226,9 +201,7 @@ function getSeverityEmoji(severity: string): string {
   }
 }
 
-/**
- * Группировка правил по странам для удобного отображения
- */
+// Группировка правил по странам для удобного отображения
 function groupRulesByCountry(rules: Rule[]): Record<string, Rule[]> {
   return rules.reduce(
     (acc, rule) => {

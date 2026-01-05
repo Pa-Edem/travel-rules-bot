@@ -6,7 +6,6 @@
 
 import { logger } from '../../../utils/logger.js';
 import { BotContext } from '../../../types/index.js';
-import { userRepository } from '../../../database/repositories/UserRepository.js';
 import { feedbackRepository } from '../../../database/repositories/FeedbackRepository.js';
 import { analyticsRepository } from '../../../database/repositories/AnalyticsRepository.js';
 
@@ -28,20 +27,14 @@ export async function handleRuleFeedbackHelpful(ctx: BotContext) {
     ruleId: ruleId,
   });
 
-  // Шаг 3: Получаем язык пользователя
-  const user = await userRepository.findById(userId);
-  const lang = (user?.language_code as 'en' | 'ru') || 'en';
+  // Шаг 3: Получаем язык пользователя - отменено, не нужно здесь
 
   // Шаг 4: Проверяем - не оставлял ли пользователь уже отзыв на это правило
   const hasExistingFeedback = await feedbackRepository.hasUserFeedbackForRule(userId, ruleId);
 
   if (hasExistingFeedback) {
     // Уже есть отзыв - показываем уведомление и выходим
-    await ctx.answerCallbackQuery(
-      lang === 'ru'
-        ? 'ℹ️ Вы уже оставляли отзыв на это правило'
-        : 'ℹ️ You already left feedback for this rule'
-    );
+    await ctx.answerCallbackQuery(ctx.t('feedback.already_submitted'));
     return; // Выходим из функции
   }
 
@@ -61,9 +54,7 @@ export async function handleRuleFeedbackHelpful(ctx: BotContext) {
 
   // Шаг 7: Показываем пользователю подтверждение
   // answerCallbackQuery = всплывающее уведомление в Telegram
-  await ctx.answerCallbackQuery(
-    lang === 'ru' ? '✅ Спасибо за отзыв!' : '✅ Thanks for your feedback!'
-  );
+  await ctx.answerCallbackQuery(ctx.t('feedback.thanks'));
 
   logger.info('Положительный отзыв сохранён', {
     feedbackId: feedback?.id,
@@ -89,20 +80,14 @@ export async function handleRuleFeedbackNotHelpful(ctx: BotContext) {
     ruleId: ruleId,
   });
 
-  // Шаг 3: Получаем язык пользователя
-  const user = await userRepository.findById(userId);
-  const lang = (user?.language_code as 'en' | 'ru') || 'en';
+  // Шаг 3: Получаем язык пользователя - отменено, не нужно здесь
 
   // Шаг 4: Проверяем - не оставлял ли пользователь уже отзыв на это правило
   const hasExistingFeedback = await feedbackRepository.hasUserFeedbackForRule(userId, ruleId);
 
   if (hasExistingFeedback) {
     // Уже есть отзыв - показываем уведомление и выходим
-    await ctx.answerCallbackQuery(
-      lang === 'ru'
-        ? 'ℹ️ Вы уже оставляли отзыв на это правило'
-        : 'ℹ️ You already left feedback for this rule'
-    );
+    await ctx.answerCallbackQuery(ctx.t('feedback.already_submitted'));
     return;
   }
 
@@ -119,28 +104,19 @@ export async function handleRuleFeedbackNotHelpful(ctx: BotContext) {
   });
 
   // Шаг 7: Формируем сообщение с просьбой написать детали
-  const promptMessage =
-    lang === 'ru'
-      ? [
-          '📝 <b>Спасибо за отзыв!</b>',
-          '',
-          'Хотите рассказать подробнее что не так?',
-          '',
-          'Просто напишите сообщение, или нажмите "Отмена" чтобы пропустить.',
-        ].join('\n')
-      : [
-          '📝 <b>Thanks for your feedback!</b>',
-          '',
-          "Would you like to tell us more about what's wrong?",
-          '',
-          'Just send a message, or click "Cancel" to skip.',
-        ].join('\n');
+  const promptMessage = [
+    ctx.t('feedback.prompt_details_title'),
+    '',
+    ctx.t('feedback.prompt_details_question'),
+    '',
+    ctx.t('feedback.prompt_details_instruction'),
+  ].join('\n');
 
   // Шаг 8: Создаём кнопку "Отмена"
-  const cancelButton =
-    lang === 'ru'
-      ? { text: '❌ Отмена', callback_data: 'feedback_cancel' }
-      : { text: '❌ Cancel', callback_data: 'feedback_cancel' };
+  const cancelButton = {
+    text: ctx.t('feedback.cancel_button'),
+    callback_data: 'feedback_cancel',
+  };
 
   // Шаг 9: Отправляем сообщение с просьбой
   await ctx.reply(promptMessage, {
@@ -173,9 +149,7 @@ export async function handleFeedbackTextMessage(ctx: BotContext) {
     messageText: messageText,
   });
 
-  // Шаг 1: Получаем язык пользователя
-  const user = await userRepository.findById(userId);
-  const lang = (user?.language_code as 'en' | 'ru') || 'en';
+  // Шаг 1: Получаем язык пользователя - отменено, не нужно здесь
 
   // Шаг 2: Сохраняем текстовый отзыв в БД
   const feedback = await feedbackRepository.submit({
@@ -209,12 +183,7 @@ export async function handleFeedbackTextMessage(ctx: BotContext) {
   });
 
   // Шаг 5: Благодарим пользователя
-  const thankYouMessage =
-    lang === 'ru'
-      ? '✅ Спасибо за подробный отзыв! Мы обязательно учтём ваши замечания.'
-      : '✅ Thanks for the detailed feedback! We will definitely consider your comments.';
-
-  await ctx.reply(thankYouMessage);
+  await ctx.reply(ctx.t('feedback.thanks_detailed'));
 }
 
 // ОБРАБОТЧИК 4: Отмена ввода текстового отзыва
@@ -230,9 +199,7 @@ export async function handleFeedbackCancel(ctx: BotContext) {
     ruleId: ruleId,
   });
 
-  // Шаг 1: Получаем язык пользователя
-  const user = await userRepository.findById(userId);
-  const lang = (user?.language_code as 'en' | 'ru') || 'en';
+  // Шаг 1: Получаем язык пользователя - отменено, не нужно здесь
 
   // ════════════════════════════════════════════════════════════════
   // ✨ НОВОЕ: Сохраняем отзыв "not_helpful" БЕЗ текста
@@ -285,9 +252,7 @@ export async function handleFeedbackCancel(ctx: BotContext) {
   }
 
   // Шаг 5: Показываем подтверждение
-  const message = lang === 'ru' ? '✅ Спасибо за отзыв!' : '✅ Thanks for your feedback!';
-
-  await ctx.reply(message);
+  await ctx.reply(ctx.t('feedback.thanks'));
 }
 
 // ОБРАБОТЧИК 5: Открыть диалог общего отзыва
@@ -299,9 +264,7 @@ export async function handleSettingsFeedback(ctx: BotContext) {
     userId: userId,
   });
 
-  // Шаг 1: Получаем язык пользователя
-  const user = await userRepository.findById(userId);
-  const lang = (user?.language_code as 'en' | 'ru') || 'en';
+  // Шаг 1: Получаем язык пользователя - отменено, не нужно здесь
 
   // Шаг 2: Включаем режим ожидания общего отзыва
   if (!ctx.session) ctx.session = {};
@@ -315,32 +278,21 @@ export async function handleSettingsFeedback(ctx: BotContext) {
   await ctx.answerCallbackQuery();
 
   // Шаг 4: Формируем сообщение с просьбой написать отзыв
-  const promptMessage =
-    lang === 'ru'
-      ? [
-          '💬 <b>Оставить отзыв о боте</b>',
-          '',
-          'Расскажите что вам нравится или что можно улучшить.',
-          '',
-          'Ваше мнение очень важно для нас! 🙏',
-          '',
-          'Просто напишите сообщение, или нажмите "Отмена".',
-        ].join('\n')
-      : [
-          '💬 <b>Leave Feedback</b>',
-          '',
-          'Tell us what you like or what could be improved.',
-          '',
-          'Your opinion is very important to us! 🙏',
-          '',
-          'Just send a message, or click "Cancel".',
-        ].join('\n');
+  const promptMessage = [
+    ctx.t('feedback.general_title'),
+    '',
+    ctx.t('feedback.general_prompt'),
+    '',
+    ctx.t('feedback.general_importance'),
+    '',
+    ctx.t('feedback.general_instruction'),
+  ].join('\n');
 
   // Шаг 5: Создаём кнопку "Отмена"
-  const cancelButton =
-    lang === 'ru'
-      ? { text: '❌ Отмена', callback_data: 'general_feedback_cancel' }
-      : { text: '❌ Cancel', callback_data: 'general_feedback_cancel' };
+  const cancelButton = {
+    text: ctx.t('feedback.cancel_button'),
+    callback_data: 'general_feedback_cancel',
+  };
 
   // Шаг 6: Отправляем сообщение
   await ctx.reply(promptMessage, {
@@ -364,9 +316,7 @@ export async function handleGeneralFeedbackMessage(ctx: BotContext) {
     messageText: messageText,
   });
 
-  // Шаг 1: Получаем язык пользователя
-  const user = await userRepository.findById(userId);
-  const lang = (user?.language_code as 'en' | 'ru') || 'en';
+  // Шаг 1: Получаем язык пользователя - отменено, не нужно здесь
 
   // Шаг 2: Сохраняем общий отзыв в БД
   const feedback = await feedbackRepository.submit({
@@ -399,12 +349,7 @@ export async function handleGeneralFeedbackMessage(ctx: BotContext) {
   });
 
   // Шаг 5: Благодарим пользователя
-  const thankYouMessage =
-    lang === 'ru'
-      ? '✅ Спасибо за отзыв! Мы обязательно учтём ваше мнение при развитии бота.'
-      : '✅ Thanks for your feedback! We will definitely consider your opinion when developing the bot.';
-
-  await ctx.reply(thankYouMessage);
+  await ctx.reply(ctx.t('feedback.general_thanks'));
 }
 
 // ОБРАБОТЧИК 7: Отмена общего отзыва
@@ -416,9 +361,7 @@ export async function handleGeneralFeedbackCancel(ctx: BotContext) {
     userId: userId,
   });
 
-  // Шаг 1: Получаем язык пользователя
-  const user = await userRepository.findById(userId);
-  const lang = (user?.language_code as 'en' | 'ru') || 'en';
+  // Шаг 1: Получаем язык пользователя - отменено, не нужно здесь
 
   // Шаг 2: ОЧИЩАЕМ сессию
   if (ctx.session) {
@@ -442,7 +385,5 @@ export async function handleGeneralFeedbackCancel(ctx: BotContext) {
   }
 
   // Шаг 5: Показываем подтверждение отмены
-  const cancelMessage = lang === 'ru' ? '❌ Отменено' : '❌ Cancelled';
-
-  await ctx.reply(cancelMessage);
+  await ctx.reply(ctx.t('feedback.cancelled'));
 }

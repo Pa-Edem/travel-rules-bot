@@ -16,10 +16,7 @@ import {
 } from '../../keyboards/onboarding.keyboards.js';
 import { analyticsRepository } from '../../../database/repositories/AnalyticsRepository.js';
 
-/**
- * Обработка выбора языка
- * Показывает КРАТКИЙ disclaimer
- */
+// Обработка выбора языка / Показывает КРАТКИЙ disclaimer
 export async function handleLanguageSelection(ctx: BotContext) {
   const callbackData = ctx.callbackQuery?.data;
   const userId = ctx.from?.id;
@@ -53,10 +50,7 @@ export async function handleLanguageSelection(ctx: BotContext) {
   });
 }
 
-/**
- * Обработка принятия disclaimer
- * Callback data: 'disclaimer_accept'
- */
+// Обработка принятия disclaimer
 export async function handleDisclaimerAccept(ctx: BotContext) {
   const userId = ctx.from?.id;
   if (!userId) return;
@@ -90,10 +84,7 @@ export async function handleDisclaimerAccept(ctx: BotContext) {
   });
 }
 
-/**
- * Обработка отклонения disclaimer
- * Callback data: 'disclaimer_decline'
- */
+// Обработка отклонения disclaimer
 export async function handleDisclaimerDecline(ctx: BotContext) {
   const userId = ctx.from?.id;
   if (!userId) return;
@@ -101,19 +92,10 @@ export async function handleDisclaimerDecline(ctx: BotContext) {
   await ctx.answerCallbackQuery();
   await ctx.deleteMessage();
 
-  const user = await userRepository.findById(userId);
-  const lang = user?.language_code === 'ru' ? 'ru' : 'en';
-
-  // ✅ Используем helper
-  const declineText = translate(lang, 'onboarding.disclaimer.declined');
-
-  await ctx.reply(declineText);
+  await ctx.reply(ctx.t('onboarding.disclaimer.declined'));
 }
 
-/**
- * Показать полный текст disclaimer
- * Callback data: 'disclaimer_read_full'
- */
+// Показать полный текст disclaimer
 export async function handleDisclaimerReadFull(ctx: BotContext) {
   const userId = ctx.from?.id;
   if (!userId) return;
@@ -133,10 +115,7 @@ export async function handleDisclaimerReadFull(ctx: BotContext) {
   });
 }
 
-/**
- * Вернуться к краткому disclaimer
- * Callback data: 'disclaimer_back'
- */
+// Вернуться к краткому disclaimer
 export async function handleDisclaimerBack(ctx: BotContext) {
   const userId = ctx.from?.id;
   if (!userId) return;

@@ -39,9 +39,7 @@ export async function handleShowCountries(ctx: BotContext) {
   });
 }
 
-/**
- * Обработка выбора страны
- */
+// Обработка выбора страны
 export async function handleCountrySelection(ctx: BotContext) {
   const callbackData = ctx.callbackQuery?.data;
   const userId = ctx.from?.id;
@@ -75,10 +73,7 @@ export async function handleCountrySelection(ctx: BotContext) {
   });
 }
 
-/**
- * Обработчик выбора категории
- * Показывает список правил для выбранной страны и категории (с пагинацией)
- */
+// Показывает список правил для выбранной страны и категории (с пагинацией)
 export async function handleCategorySelection(ctx: BotContext) {
   const callbackData = ctx.callbackQuery?.data;
   if (!callbackData || !ctx.session) return;
@@ -87,7 +82,7 @@ export async function handleCategorySelection(ctx: BotContext) {
   const countryCode = ctx.session.current_country;
 
   if (!countryCode) {
-    await ctx.answerCallbackQuery('⚠️ Ошибка: страна не выбрана');
+    await ctx.answerCallbackQuery(ctx.t('errors.country_not_selected'));
     return;
   }
 
@@ -113,13 +108,11 @@ export async function handleCategorySelection(ctx: BotContext) {
       country: countryCode,
       category: categoryId,
     });
-    await ctx.answerCallbackQuery('❌ Ошибка при загрузке правил');
+    await ctx.answerCallbackQuery(ctx.t('errors.loading_rules'));
   }
 }
 
-/**
- * Кнопка "Назад"
- */
+// Кнопка "Назад"
 export async function handleBack(ctx: BotContext) {
   const userId = ctx.from?.id;
   if (!userId) return;
@@ -162,9 +155,7 @@ export async function handleBack(ctx: BotContext) {
   }
 }
 
-/**
- * Возврат в главное меню
- */
+// Возврат в главное меню
 export async function handleMainMenu(ctx: BotContext) {
   const userId = ctx.from?.id;
   if (!userId) return;
@@ -188,10 +179,7 @@ export async function handleMainMenu(ctx: BotContext) {
   });
 }
 
-/**
- * Обработчик просмотра правила
- * Показывает полную информацию о правиле
- */
+// Обработчик просмотра полной информации о правиле
 export async function handleRuleView(ctx: BotContext) {
   const callbackData = ctx.callbackQuery?.data;
   if (!callbackData) return;
@@ -203,7 +191,7 @@ export async function handleRuleView(ctx: BotContext) {
     const rule = await ruleRepository.getRuleById(ruleId);
 
     if (!rule) {
-      await ctx.answerCallbackQuery('❌ Правило не найдено');
+      await ctx.answerCallbackQuery(ctx.t('errors.rule_not_found'));
       return;
     }
 
@@ -243,16 +231,14 @@ export async function handleRuleView(ctx: BotContext) {
       error: error instanceof Error ? error.message : 'Unknown error',
       ruleId: ruleId,
     });
-    await ctx.answerCallbackQuery('❌ Ошибка при загрузке правила');
+    await ctx.answerCallbackQuery(ctx.t('errors.loading_rule'));
   }
 }
 
-/**
- * Обработчик кнопки "Предыдущая страница"
- */
+// Обработчик кнопки "Предыдущая страница"
 export async function handlePagePrev(ctx: BotContext) {
   if (!ctx.session?.current_country || !ctx.session?.current_category) {
-    await ctx.answerCallbackQuery('⚠️ Ошибка навигации');
+    await ctx.answerCallbackQuery(ctx.t('errors.navigation_error'));
     return;
   }
 
@@ -269,16 +255,14 @@ export async function handlePagePrev(ctx: BotContext) {
       error: error instanceof Error ? error.message : 'Unknown error',
       country: ctx.session.current_country,
     });
-    await ctx.answerCallbackQuery('❌ Ошибка при загрузке страницы');
+    await ctx.answerCallbackQuery(ctx.t('errors.loading_page'));
   }
 }
 
-/**
- * Обработчик кнопки "Следующая страница"
- */
+// Обработчик кнопки "Следующая страница"
 export async function handlePageNext(ctx: BotContext) {
   if (!ctx.session?.current_country || !ctx.session?.current_category) {
-    await ctx.answerCallbackQuery('⚠️ Ошибка навигации');
+    await ctx.answerCallbackQuery(ctx.t('errors.navigation_error'));
     return;
   }
 
@@ -295,22 +279,17 @@ export async function handlePageNext(ctx: BotContext) {
       error: error instanceof Error ? error.message : 'Unknown error',
       country: ctx.session.current_country,
     });
-    await ctx.answerCallbackQuery('❌ Ошибка при загрузке страницы');
+    await ctx.answerCallbackQuery(ctx.t('errors.loading_page'));
   }
 }
 
-/**
- * Обработчик нажатия на счетчик страниц (ничего не делает)
- */
+// Обработчик нажатия на счетчик страниц (ничего не делает)
 export async function handlePageCurrent(ctx: BotContext) {
   // Просто отвечаем на callback query, чтобы убрать "часики"
   await ctx.answerCallbackQuery();
 }
 
-/**
- * Вспомогательная функция для отображения списка правил
- * Используется в handleCategorySelection и обработчиках пагинации
- */
+// Вспомогательная функция для отображения списка правил
 async function showRulesList(
   ctx: BotContext,
   countryCode: string,

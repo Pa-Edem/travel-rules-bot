@@ -12,10 +12,9 @@ import {
   createSettingsKeyboard,
   createLanguageChangeKeyboard,
 } from '../../keyboards/settings.keyboards.js';
+import { translate } from '../../utils/translate.helper.js';
 
-/**
- * Обработчик кнопки "⚙️ Настройки" из главного меню
- */
+//Обработчик кнопки "Настройки" из главного меню
 export async function handleSettingsMenu(ctx: BotContext) {
   const userId = ctx.from?.id;
   if (!userId) return;
@@ -37,9 +36,7 @@ export async function handleSettingsMenu(ctx: BotContext) {
   });
 }
 
-/**
- * Обработчик кнопки "📊 Моя статистика"
- */
+// Обработчик кнопки "Моя статистика"
 export async function handleShowStatistics(ctx: BotContext) {
   const userId = ctx.from?.id;
   if (!userId) return;
@@ -60,9 +57,7 @@ export async function handleShowStatistics(ctx: BotContext) {
   });
 }
 
-/**
- * Обработчик кнопки "🌐 Изменить язык"
- */
+// Обработчик кнопки "Изменить язык"
 export async function handleChangeLanguage(ctx: BotContext) {
   const userId = ctx.from?.id;
   if (!userId) return;
@@ -72,19 +67,19 @@ export async function handleChangeLanguage(ctx: BotContext) {
 
   await ctx.answerCallbackQuery();
 
-  const message =
-    lang === 'ru'
-      ? '🌐 Выберите язык интерфейса:\n\nВыбранный язык: 🇷🇺 Русский'
-      : '🌐 Choose interface language:\n\nCurrent language: 🇬🇧 English';
+  const languageName = lang === 'ru' ? '🇷🇺 Русский' : '🇬🇧 English';
+  const message = [
+    ctx.t('settings.choose_language_title'),
+    '',
+    ctx.t('settings.current_language', { language: languageName }),
+  ].join('\n');
 
   await ctx.editMessageText(message, {
     reply_markup: createLanguageChangeKeyboard(lang),
   });
 }
 
-/**
- * Обработчик выбора нового языка
- */
+// Обработчик выбора нового языка
 export async function handleLanguageChange(ctx: BotContext) {
   const callbackData = ctx.callbackQuery?.data;
   const userId = ctx.from?.id;
@@ -99,7 +94,7 @@ export async function handleLanguageChange(ctx: BotContext) {
   });
 
   await ctx.answerCallbackQuery(
-    newLang === 'ru' ? '✅ Язык изменён на русский' : '✅ Language changed to English'
+    newLang === 'ru' ? ctx.t('settings.language_changed_ru') : ctx.t('settings.language_changed_en')
   );
 
   // Возвращаемся в настройки
@@ -112,9 +107,7 @@ export async function handleLanguageChange(ctx: BotContext) {
   });
 }
 
-/**
- * Обработчик кнопки "ℹ️ О боте"
- */
+// Обработчик кнопки "О боте"
 export async function handleAboutBot(ctx: BotContext) {
   const userId = ctx.from?.id;
   if (!userId) return;
@@ -124,48 +117,26 @@ export async function handleAboutBot(ctx: BotContext) {
 
   await ctx.answerCallbackQuery();
 
-  const message =
-    lang === 'ru'
-      ? [
-          '<b>ℹ️ О Travel Rules Bot</b>',
-          '',
-          '📌 <b>Версия:</b> 1.0.0 (MVP)',
-          '📅 <b>Запущен:</b> Январь 2026',
-          '',
-          '<b>Что умеет бот:</b>',
-          '✅ 6 стран (Италия, Турция, ОАЭ, Таиланд, Испания, Германия)',
-          '✅ 5 категорий правил',
-          '✅ Билингвальный поиск (EN/RU)',
-          '✅ Детальная информация о правилах',
-          '✅ Источники и штрафы',
-          '',
-          '💡 <b>В разработке:</b>',
-          '• Больше стран',
-          '• Уведомления об изменениях',
-          '• Premium функции',
-          '',
-          '📧 <b>Связь:</b> @your_username',
-        ].join('\n')
-      : [
-          '<b>ℹ️ About Travel Rules Bot</b>',
-          '',
-          '📌 <b>Version:</b> 1.0.0 (MVP)',
-          '📅 <b>Launched:</b> January 2026',
-          '',
-          '<b>Features:</b>',
-          '✅ 6 countries (Italy, Turkey, UAE, Thailand, Spain, Germany)',
-          '✅ 5 rule categories',
-          '✅ Bilingual search (EN/RU)',
-          '✅ Detailed rule information',
-          '✅ Sources and fines',
-          '',
-          '💡 <b>Coming soon:</b>',
-          '• More countries',
-          '• Change notifications',
-          '• Premium features',
-          '',
-          '📧 <b>Contact:</b> @your_username',
-        ].join('\n');
+  const message = [
+    ctx.t('settings.about_title'),
+    '',
+    ctx.t('settings.about_version'),
+    ctx.t('settings.about_launched'),
+    '',
+    ctx.t('settings.about_features_title'),
+    ctx.t('settings.about_feature_countries'),
+    ctx.t('settings.about_feature_categories'),
+    ctx.t('settings.about_feature_search'),
+    ctx.t('settings.about_feature_details'),
+    ctx.t('settings.about_feature_sources'),
+    '',
+    ctx.t('settings.about_coming_soon'),
+    ctx.t('settings.about_more_countries'),
+    ctx.t('settings.about_notifications'),
+    ctx.t('settings.about_premium'),
+    '',
+    ctx.t('settings.about_contact'),
+  ].join('\n');
 
   await ctx.editMessageText(message, {
     reply_markup: createSettingsKeyboard(lang),
@@ -177,9 +148,7 @@ export async function handleAboutBot(ctx: BotContext) {
 // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
 // =============================================================================
 
-/**
- * Интерфейс статистики пользователя
- */
+// Интерфейс статистики пользователя
 export interface UserStatistics {
   totalViews: number;
   totalSearches: number;
@@ -189,9 +158,7 @@ export interface UserStatistics {
   memberSince: string;
 }
 
-/**
- * Получить статистику пользователя
- */
+// Получить статистику пользователя
 export async function getUserStatistics(
   userId: number,
   lang: 'en' | 'ru'
@@ -223,80 +190,45 @@ export async function getUserStatistics(
   };
 }
 
-/**
- * Форматировать сообщение настроек
- */
+// Форматировать сообщение настроек
 export function formatSettingsMessage(stats: UserStatistics, lang: 'en' | 'ru'): string {
   const languageName = stats.currentLanguage === 'ru' ? '🇷🇺 Русский' : '🇬🇧 English';
 
-  if (lang === 'ru') {
-    return [
-      '<b>⚙️ Настройки</b>',
-      '',
-      `🌐 <b>Язык:</b> ${languageName}`,
-      `📅 <b>С нами с:</b> ${formatDate(stats.memberSince, lang)}`,
-      '',
-      '<i>Используйте кнопки ниже для изменения настроек</i>',
-    ].join('\n');
-  } else {
-    return [
-      '<b>⚙️ Settings</b>',
-      '',
-      `🌐 <b>Language:</b> ${languageName}`,
-      `📅 <b>Member since:</b> ${formatDate(stats.memberSince, lang)}`,
-      '',
-      '<i>Use buttons below to change settings</i>',
-    ].join('\n');
-  }
+  return [
+    translate(lang, 'settings.title'),
+    '',
+    `${translate(lang, 'settings.language_label')} ${languageName}`,
+    `${translate(lang, 'settings.member_since')} ${formatDate(stats.memberSince, lang)}`,
+    '',
+    translate(lang, 'settings.use_buttons'),
+  ].join('\n');
 }
 
-/**
- * Форматировать сообщение статистики
- */
+// Форматировать сообщение статистики
 export function formatStatisticsMessage(stats: UserStatistics, lang: 'en' | 'ru'): string {
   // Получаем названия страны и категории
   const countryName = stats.favoriteCountry
     ? getCountryName(stats.favoriteCountry, lang)
-    : lang === 'ru'
-      ? '—'
-      : '—';
+    : translate(lang, 'settings.stats_no_data');
 
   const categoryName = stats.favoriteCategory
     ? getCategoryName(stats.favoriteCategory, lang)
-    : lang === 'ru'
-      ? '—'
-      : '—';
+    : translate(lang, 'settings.stats_no_data');
 
-  if (lang === 'ru') {
-    return [
-      '<b>📊 Ваша статистика</b>',
-      '',
-      `👁 <b>Просмотров правил:</b> ${stats.totalViews}`,
-      `🔍 <b>Поисковых запросов:</b> ${stats.totalSearches}`,
-      '',
-      `🌍 <b>Любимая страна:</b> ${countryName}`,
-      `📂 <b>Любимая категория:</b> ${categoryName}`,
-      '',
-      `📅 <b>С нами с:</b> ${formatDate(stats.memberSince, lang)}`,
-    ].join('\n');
-  } else {
-    return [
-      '<b>📊 Your Statistics</b>',
-      '',
-      `👁 <b>Rules viewed:</b> ${stats.totalViews}`,
-      `🔍 <b>Searches performed:</b> ${stats.totalSearches}`,
-      '',
-      `🌍 <b>Favorite country:</b> ${countryName}`,
-      `📂 <b>Favorite category:</b> ${categoryName}`,
-      '',
-      `📅 <b>Member since:</b> ${formatDate(stats.memberSince, lang)}`,
-    ].join('\n');
-  }
+  return [
+    translate(lang, 'settings.stats_title'),
+    '',
+    `${translate(lang, 'settings.stats_views')} ${stats.totalViews}`,
+    `${translate(lang, 'settings.stats_searches')} ${stats.totalSearches}`,
+    '',
+    `${translate(lang, 'settings.stats_favorite_country')} ${countryName}`,
+    `${translate(lang, 'settings.stats_favorite_category')} ${categoryName}`,
+    '',
+    `${translate(lang, 'settings.member_since')} ${formatDate(stats.memberSince, lang)}`,
+  ].join('\n');
 }
 
-/**
- * Получить название страны по коду
- */
+// Получить название страны по коду
 function getCountryName(countryCode: string, lang: 'en' | 'ru'): string {
   const country = COUNTRIES.find((c) => c.code === countryCode);
   if (!country) return countryCode;
@@ -305,9 +237,7 @@ function getCountryName(countryCode: string, lang: 'en' | 'ru'): string {
   return `${country.emoji} ${name}`;
 }
 
-/**
- * Получить название категории по ID
- */
+// Получить название категории по ID
 function getCategoryName(categoryId: string, lang: 'en' | 'ru'): string {
   const category = CATEGORIES.find((c) => c.id === categoryId);
   if (!category) return categoryId;
@@ -316,9 +246,7 @@ function getCategoryName(categoryId: string, lang: 'en' | 'ru'): string {
   return `${category.emoji} ${name}`;
 }
 
-/**
- * Форматировать дату
- */
+// Форматировать дату
 function formatDate(dateString: string, lang: 'en' | 'ru'): string {
   const date = new Date(dateString);
 

@@ -5,20 +5,17 @@
  */
 
 import { InlineKeyboard } from 'grammy';
+import { translate } from '../utils/translate.helper.js';
 
 // Клавиатура для страницы Premium
 export function createPremiumInfoKeyboard(lang: 'en' | 'ru'): InlineKeyboard {
   const keyboard = new InlineKeyboard();
 
   // Кнопка "Уведомить меня"
-  const notifyText = lang === 'ru' ? '🔔 Уведомить меня' : '🔔 Notify Me';
-
-  keyboard.text(notifyText, 'premium_notify').row();
+  keyboard.text(translate(lang, 'premium.notify_me'), 'premium_notify').row();
 
   // Кнопка "Назад в меню"
-  const backText = lang === 'ru' ? '◀️ Назад в меню' : '◀️ Back to Menu';
-
-  keyboard.text(backText, 'nav_main_menu');
+  keyboard.text(translate(lang, 'premium.back_to_menu'), 'nav_main_menu');
 
   return keyboard;
 }
@@ -28,16 +25,10 @@ export function createPremiumNotifiedKeyboard(lang: 'en' | 'ru'): InlineKeyboard
   const keyboard = new InlineKeyboard();
 
   // Кнопка-индикатор (неактивная)
-  const notifiedText = lang === 'ru' ? '✅ Вы в списке ожидания' : "✅ You're on the Waitlist";
-
-  keyboard
-    .text(notifiedText, 'premium_already_notified') // callback не обрабатываем
-    .row();
+  keyboard.text(translate(lang, 'premium.on_waitlist'), 'premium_already_notified').row();
 
   // Кнопка "Назад в меню"
-  const backText = lang === 'ru' ? '◀️ Назад в меню' : '◀️ Back to Menu';
-
-  keyboard.text(backText, 'nav_main_menu');
+  keyboard.text(translate(lang, 'premium.back_to_menu'), 'nav_main_menu');
 
   return keyboard;
 }

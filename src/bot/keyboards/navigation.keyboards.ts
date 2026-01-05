@@ -1,17 +1,12 @@
 // src/bot/keyboards/navigation.keyboards.ts
 
-/**
- * Клавиатуры для навигации по странам и категориям
- */
-
+// Клавиатуры для навигации по странам и категориям
 import { InlineKeyboard } from 'grammy';
 import { COUNTRIES, CATEGORIES } from '../../config/constants.js';
 import { translate } from '../utils/translate.helper.js';
 import type { Rule } from '../../database/repositories/RuleRepository.js';
 
-/**
- * Клавиатура выбора страны
- */
+// Клавиатура выбора страны
 export function createCountriesKeyboard(lang: 'en' | 'ru'): InlineKeyboard {
   const keyboard = new InlineKeyboard();
 
@@ -32,9 +27,7 @@ export function createCountriesKeyboard(lang: 'en' | 'ru'): InlineKeyboard {
   return keyboard;
 }
 
-/**
- * Клавиатура выбора категории
- */
+// Клавиатура выбора категории
 export function createCategoriesKeyboard(lang: 'en' | 'ru'): InlineKeyboard {
   const keyboard = new InlineKeyboard();
 
@@ -52,9 +45,7 @@ export function createCategoriesKeyboard(lang: 'en' | 'ru'): InlineKeyboard {
   return keyboard;
 }
 
-/**
- * Клавиатура для экрана правил (placeholder)
- */
+// Клавиатура для экрана правил (placeholder)
 export function createRulesKeyboard(lang: 'en' | 'ru'): InlineKeyboard {
   const keyboard = new InlineKeyboard();
 
@@ -65,14 +56,7 @@ export function createRulesKeyboard(lang: 'en' | 'ru'): InlineKeyboard {
   return keyboard;
 }
 
-/**
- * Клавиатура со списком правил (с пагинацией)
- *
- * @param rules - Правила для текущей страницы
- * @param currentPage - Текущая страница
- * @param totalPages - Всего страниц
- * @param lang - Язык
- */
+// Клавиатура со списком правил (с пагинацией)
 export function createRulesListKeyboard(
   rules: Rule[],
   currentPage: number,
@@ -97,19 +81,19 @@ export function createRulesListKeyboard(
     // Кнопки Назад/Далее
     if (hasPrev && hasNext) {
       keyboard
-        .text('⬅️ ' + (lang === 'ru' ? 'Назад' : 'Prev'), `page_prev`)
+        .text(translate(lang, 'navigation.buttons.prev'), 'page_prev')
         .text(`${currentPage}/${totalPages}`, 'page_current')
-        .text((lang === 'ru' ? 'Далее' : 'Next') + ' ➡️', `page_next`)
+        .text(translate(lang, 'navigation.buttons.next'), 'page_next')
         .row();
     } else if (hasPrev) {
       keyboard
-        .text('⬅️ ' + (lang === 'ru' ? 'Назад' : 'Prev'), `page_prev`)
+        .text(translate(lang, 'navigation.buttons.prev'), 'page_prev')
         .text(`${currentPage}/${totalPages}`, 'page_current')
         .row();
     } else if (hasNext) {
       keyboard
         .text(`${currentPage}/${totalPages}`, 'page_current')
-        .text((lang === 'ru' ? 'Далее' : 'Next') + ' ➡️', `page_next`)
+        .text(translate(lang, 'navigation.buttons.next'), 'page_next')
         .row();
     }
   }
@@ -122,9 +106,7 @@ export function createRulesListKeyboard(
   return keyboard;
 }
 
-/**
- * Получить эмодзи для уровня серьезности
- */
+// Получить эмодзи для уровня серьезности
 function getSeverityEmoji(severity: string): string {
   switch (severity) {
     case 'critical':
@@ -140,31 +122,20 @@ function getSeverityEmoji(severity: string): string {
   }
 }
 
-/**
- * Клавиатура для экрана просмотра правила
- * С кнопками обратной связи 👍/👎
- *
- * @param lang - Язык интерфейса ('en' или 'ru')
- * @param ruleId - ID правила (например: 'IT_TRANSPORT_001')
- */
+// Клавиатура для экрана просмотра правила
 export function createRuleViewKeyboard(lang: 'en' | 'ru', ruleId: string): InlineKeyboard {
   const keyboard = new InlineKeyboard();
 
-  // Текст кнопок в зависимости от языка
-  const helpfulText = lang === 'ru' ? '👍 Полезно' : '👍 Helpful';
-  const notHelpfulText = lang === 'ru' ? '👎 Не полезно' : '👎 Not Helpful';
-
-  // СТРОКА 1: Кнопки обратной связи
-  // callback_data формат: feedback_helpful_IT_TRANSPORT_001
+  // Кнопки обратной связи
   keyboard
-    .text(helpfulText, `feedback_helpful_${ruleId}`)
-    .text(notHelpfulText, `feedback_not_helpful_${ruleId}`)
-    .row(); // .row() = перенос на новую строку
+    .text(translate(lang, 'navigation.buttons.helpful'), `feedback_helpful_${ruleId}`)
+    .text(translate(lang, 'navigation.buttons.not_helpful'), `feedback_not_helpful_${ruleId}`)
+    .row();
 
-  // СТРОКА 2: Кнопка "Назад к списку"
+  // Кнопка "Назад к списку"
   keyboard.text(translate(lang, 'navigation.buttons.back_to_list'), 'nav_back').row();
 
-  // СТРОКА 3: Кнопка "Главное меню"
+  // Кнопка "Главное меню"
   keyboard.text(translate(lang, 'navigation.buttons.main_menu'), 'nav_main_menu');
 
   return keyboard;

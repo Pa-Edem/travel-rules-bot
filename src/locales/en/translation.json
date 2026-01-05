@@ -31,6 +31,9 @@
       "full_text": "📋 **FULL LEGAL DISCLAIMER**\n\n**1. Nature of Information**\nTravel Rules Bot provides general information about laws, regulations, and cultural norms of various countries for informational purposes only.\n\n**2. Not Legal Advice**\nInformation in this bot is NOT:\n• Legal advice\n• Official guidance\n• A substitute for professional counsel\n\n**3. Accuracy and Currency**\n• Information may be incomplete or outdated\n• Laws change regularly\n• Always verify information from official sources\n• We do not guarantee accuracy\n\n**4. Limitation of Liability**\nBy using this bot, you agree that:\n• Developers are not responsible for any consequences of using this information\n• You independently verify all information\n• You use information at your own risk\n\n**5. Recommendations**\n• Verify information on official embassy websites\n• Consult with lawyers when necessary\n• Monitor news about law changes\n\nBy using the bot, you accept all the above terms.",
       "button_read_full": "📄 Read Full",
       "button_back": "◀️ Back",
+      "accept": "✅ I Accept",
+      "decline": "❌ Decline",
+      "read_full": "📄 Read Full",
       "accepted": "✅ Great! Welcome to Travel Rules Bot!",
       "declined": "Sorry you declined. Use /start to begin again."
     },
@@ -41,7 +44,101 @@
     }
   },
   "menu": {
-    "main_title": "📋 Main Menu"
+    "main_title": "📋 Main Menu",
+    "browse_countries": "🌍 Browse Countries",
+    "search_rules": "🔍 Search Rules",
+    "premium": "💎 Premium",
+    "settings": "⚙️ Settings",
+    "help": "❓ Help"
+  },
+  "premium": {
+    "notify_me": "🔔 Notify Me",
+    "on_waitlist": "✅ You're on the Waitlist",
+    "back_to_menu": "◀️ Back to Menu",
+    "title": "💎 <b>Travel Rules Premium</b>",
+    "coming_soon": "<b>Coming Soon:</b>",
+    "offline_access_title": "📱 <b>Offline Access</b>",
+    "offline_access_pdf": "• Download rules as PDF",
+    "offline_access_browse": "• Browse without internet",
+    "advanced_search_title": "🔍 <b>Advanced Search</b>",
+    "advanced_search_filters": "• Category filters",
+    "advanced_search_regional": "• Regional search",
+    "advanced_search_history": "• Search history",
+    "regional_rules_title": "🗺️ <b>Regional Rules</b>",
+    "regional_rules_cities": "• City-specific rules",
+    "regional_rules_zones": "• Tourist zones",
+    "regional_rules_local": "• Local regulations",
+    "push_notifications_title": "🔔 <b>Push Notifications</b>",
+    "push_notifications_changes": "• Rule changes",
+    "push_notifications_laws": "• New laws",
+    "push_notifications_reminders": "• Personal reminders",
+    "priority_support_title": "⚡ <b>Priority Support</b>",
+    "priority_support_fast": "• Fast responses",
+    "priority_support_help": "• Help with complex cases",
+    "already_on_waitlist": "✅ <i>You're on the waitlist! We'll notify you when Premium is ready.</i>",
+    "join_waitlist_cta": "💡 <i>Click \"Notify Me\" to be among the first to know about the launch!</i>",
+    "already_notified": "ℹ️ You're already on the waitlist!",
+    "notify_success": "✅ Great! We'll notify you when Premium is ready."
+  },
+  "settings": {
+    "my_statistics": "📊 My Statistics",
+    "change_language": "🌐 Change Language",
+    "leave_feedback": "💬 Leave Feedback",
+    "about_bot": "ℹ️ About Bot",
+    "back": "◀️ Back",
+    "title": "<b>⚙️ Settings</b>",
+    "language_label": "🌐 <b>Language:</b>",
+    "member_since": "📅 <b>Member since:</b>",
+    "use_buttons": "<i>Use buttons below to change settings</i>",
+    "choose_language_title": "🌐 Choose interface language:",
+    "current_language": "Current language: {{language}}",
+    "language_changed_en": "✅ Language changed to English",
+    "language_changed_ru": "✅ Язык изменён на русский",
+    "stats_title": "<b>📊 Your Statistics</b>",
+    "stats_views": "👁 <b>Rules viewed:</b>",
+    "stats_searches": "🔍 <b>Searches performed:</b>",
+    "stats_favorite_country": "🌍 <b>Favorite country:</b>",
+    "stats_favorite_category": "📂 <b>Favorite category:</b>",
+    "stats_no_data": "—",
+    "about_title": "<b>ℹ️ About Travel Rules Bot</b>",
+    "about_version": "📌 <b>Version:</b> 1.0.0 (MVP)",
+    "about_launched": "📅 <b>Launched:</b> January 2026",
+    "about_features_title": "<b>Features:</b>",
+    "about_feature_countries": "✅ 6 countries (Italy, Turkey, UAE, Thailand, Spain, Germany)",
+    "about_feature_categories": "✅ 5 rule categories",
+    "about_feature_search": "✅ Bilingual search (EN/RU)",
+    "about_feature_details": "✅ Detailed rule information",
+    "about_feature_sources": "✅ Sources and fines",
+    "about_coming_soon": "💡 <b>Coming soon:</b>",
+    "about_more_countries": "• More countries",
+    "about_notifications": "• Change notifications",
+    "about_premium": "• Premium features",
+    "about_contact": "📧 <b>Contact:</b> @your_username"
+  },
+  "rules": {
+    "severity": "Severity",
+    "severity_critical": "Critical",
+    "severity_high": "High",
+    "severity_medium": "Medium",
+    "severity_low": "Low",
+    "fine_label": "Fine",
+    "details_title": "ℹ️ Details:",
+    "sources_title": "Sources"
+  },
+  "feedback": {
+    "already_submitted": "ℹ️ You already left feedback for this rule",
+    "thanks": "✅ Thanks for your feedback!",
+    "prompt_details_title": "📝 <b>Thanks for your feedback!</b>",
+    "prompt_details_question": "Would you like to tell us more about what's wrong?",
+    "prompt_details_instruction": "Just send a message, or click \"Cancel\" to skip.",
+    "thanks_detailed": "✅ Thanks for the detailed feedback! We will definitely consider your comments.",
+    "cancel_button": "❌ Cancel",
+    "cancelled": "❌ Cancelled",
+    "general_title": "💬 <b>Leave Feedback</b>",
+    "general_prompt": "Tell us what you like or what could be improved.",
+    "general_importance": "Your opinion is very important to us! 🙏",
+    "general_instruction": "Just send a message, or click \"Cancel\".",
+    "general_thanks": "✅ Thanks for your feedback! We will definitely consider your opinion when developing the bot."
   },
   "search": {
     "prompt_title": "🔍 Search Rules",
@@ -58,7 +155,8 @@
     "filter_all": "All",
     "apply_filters": "Apply filters",
     "clear_filters": "Clear filters",
-    "searching": "🔍 Searching..."
+    "searching": "🔍 Searching...",
+    "cancel": "❌ Cancel"
   },
   "navigation": {
     "countries": {
@@ -84,13 +182,17 @@
       "no_rules": "No rules found for this combination."
     },
     "buttons": {
+      "main_menu": "🏠 Main Menu",
       "back": "◀️ Back",
       "back_to_categories": "◀️ Back to Categories",
       "back_to_list": "◀️ Back to List",
-      "main_menu": "🏠 Main Menu",
       "back_to_search": "🔍 Back to search",
+      "new_search": "🔍 New search",
       "show_filters": "🎯 Filters",
-      "new_search": "🔍 New search"
+      "prev": "⬅️ Prev",
+      "next": "Next ➡️",
+      "helpful": "👍 Helpful",
+      "not_helpful": "👎 Not Helpful"
     }
   },
   "errors": {
@@ -100,6 +202,14 @@
     "rate_limit": "⏱ Too many requests. Please wait a moment.",
     "telegram_api": "⚠️ Unable to process your request. Please try again.",
     "user_data": "❌ Unable to retrieve user data. Please try /start again.",
-    "unknown_command": "Unknown command. Use /help to see available commands."
+    "unknown_command": "Unknown command. Use /help to see available commands.",
+    "country_not_selected": "⚠️ Error: country not selected",
+    "loading_rules": "❌ Error loading rules",
+    "rule_not_found": "❌ Rule not found",
+    "loading_rule": "❌ Error loading rule",
+    "navigation_error": "⚠️ Navigation error",
+    "loading_page": "❌ Error loading page",
+    "search_results_not_found": "⚠️ Search results not found",
+    "search_error": "❌ Search error"
   }
 }
